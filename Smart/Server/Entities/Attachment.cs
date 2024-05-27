@@ -2,14 +2,15 @@
 {
     public class Attachment
     {
-        public int AttachmentId { get; set; }
-        public int WorkItemId { get; set; }
-        public string FilePath { get; set; }
-        public string FileName { get; set; }
-        public int UploadedByUserId { get; set; }
-        public DateTime UploadedDate { get; set; }
+       public int AttachmentId { get; set; } // Ідентифікатор вкладення
+        public int WorkItemId { get; set; } // Ідентифікатор робочого елементу, до якого відноситься вкладення
+        public string FilePath { get; set; } // Шлях до файлу вкладення
+        public string FileName { get; set; } // Назва файлу вкладення
+        public string UploadedByUserId { get; set; } // Ідентифікатор користувача, який завантажив вкладення
+        public DateTime UploadedDate { get; set; } // Дата завантаження вкладення
 
-        public WorkItem WorkItem { get; set; }
-        public User UploadedByUser { get; set; }
+        public WorkItem AttachedWorkItem { get; set; } // Робочий елемент, до якого відноситься вкладення
+        public User UploadedByUser { get; set; } // Користувач, який завантажив вкладення
+
     }
 }

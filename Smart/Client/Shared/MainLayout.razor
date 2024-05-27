@@ -1,17 +1,66 @@
-﻿@inherits LayoutComponentBase
+﻿@using Radzen
+@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@inject DialogService DialogService
+@inject TooltipService TooltipService 
+@inject ContextMenuService ContextMenuService 
+@inject NotificationService NotificationService 
+<RadzenComponents />
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<RadzenLayout style="grid-template-areas: 'rz-sidebar rz-header' 'rz-sidebar rz-body';">
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
+    <RadzenHeader  Style="background-color:white; color:black">
+        <RadzenRow JustifyContent="JustifyContent.Start" AlignItems="AlignItems.Center"  Gap="0" >
+            <RadzenColumn Size="5">
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+                <RadzenRow>
+                    <RadzenSidebarToggle Click="@SidebarToggleClick" Style="color:black"></RadzenSidebarToggle>
+                    <RadzenText Text="Hello " Style="font-size:large; margin-top:10px;"></RadzenText>
+                </RadzenRow>
+
+
+            </RadzenColumn>
+            <RadzenColumn Size="7">
+                <RadzenStack AlignItems="AlignItems.Center" Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End"></RadzenStack>
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenHeader>
+
+    <RadzenBody Expanded="@sidebarExpanded">
+        <RadzenRow class="rz-mx-auto rz-px-4 rz-pt-2 rz-pt-md-4 rz-pt-lg-6 rz-pt-xl-12 rz-pb-2 rz-pb-lg-12" Style="max-width: 1440px;">
+            <RadzenColumn Size="12">
+                @Body
+            </RadzenColumn>
+        </RadzenRow>
+    </RadzenBody>
+
+    <RadzenSidebar Responsive="false " Style="width: max-content; border:none; background : #292731">
+
+        <RadzenStack AlignItems="Radzen.AlignItems.Center" class="rz-py-4 rz-py-lg-6" >
+            <RadzenRow AlignItems="Radzen.AlignItems.Center" JustifyContent="Radzen.JustifyContent.Start ">
+                <RadzenImage Path="/logo.png" style="width: 38px; height: 38px; margin-left: 10px; margin-right: 10px;" Click="@(e => NavigationManager.NavigateTo("/"))"></RadzenImage>
+                <RadzenText Text="SMART  " TextStyle="Radzen.Blazor.TextStyle.Subtitle2" style="@(sidebarExpanded ? "color: white; margin-bottom: 0px; padding-right: 10px; font-size: 20px;" : "display: none; ")" />
+            </RadzenRow>
+        </RadzenStack>
+
+
+        <RadzenPanelMenu DisplayStyle="@(sidebarExpanded ? MenuItemDisplayStyle.IconAndText  : MenuItemDisplayStyle.Icon)" ShowArrow="true" Style="background-color: #292731; border:none">
+            <RadzenPanelMenuItem Text="Faculties" Icon="account_balance" Style="color:antiquewhite" Click="@(e => NavigationManager.NavigateTo("faculty"))" />
+            <RadzenPanelMenuItem Text="Students" Icon="assignment_ind" Style="color:antiquewhite" Click="@(e => NavigationManager.NavigateTo("student"))" />
+            <RadzenPanelMenuItem Text="Groups" Style="color:antiquewhite" Icon="dns" Click="@(e => NavigationManager.NavigateTo("groups"))" />
+            <RadzenPanelMenuItem Text="Login" Icon="login" Style="color:antiquewhite" Click="@(e => NavigationManager.NavigateTo("/Identity/Account/Login", true))" />
+            <RadzenPanelMenuItem Text="Register" Icon="person_add" Style="color:antiquewhite" Click="@(e => NavigationManager.NavigateTo("/Identity/Account/Register", true))" />
+        </RadzenPanelMenu>
+    </RadzenSidebar>
+</RadzenLayout>
+
+@code {
+    private bool sidebarExpanded = true;
+
+    void SidebarToggleClick()
+    {
+        sidebarExpanded = !sidebarExpanded;
+
+    }
+}

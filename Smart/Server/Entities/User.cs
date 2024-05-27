@@ -4,16 +4,15 @@ namespace Smart.Server.Entities
 {
     public class User : IdentityUser
     {
-        public int UserId { get; set; }
-        public string Firstname { get; set; }
-        public string Lastname { get; set; }
-        public DateTime BirthDate { get; set; }
+        public string Firstname { get; set; } // Ім'я користувача
+        public string Lastname { get; set; }  // Прізвище користувача
+        public DateTime BirthDate { get; set; } // Дата народження користувача
 
-        public ICollection<Project>? Projects { get; set; }
-        public ICollection<WorkItem>? CreatedTasks { get; set; }
-        public ICollection<WorkItem>? AssignedTasks { get; set; }
-        public ICollection<Comment>? Comments { get; set; }
-        public ICollection<Attachment>? Attachments { get; set; }
-        public ICollection<ChatMessage>? ChatMessages { get; set; }
+        public ICollection<UserProject> UserProjects { get; set; } // Список проектів, до яких має доступ користувач
+        public ICollection<WorkItem> CreatedTasks { get; set; } // Задачі, які створив користувач
+        public ICollection<WorkItem> AssignedTasks { get; set; } // Задачі, які призначені користувачеві
+        public ICollection<Comment> Comments { get; set; } // Коментарі, які залишив користувач
+        public ICollection<Attachment> Attachments { get; set; } // Вкладення, які додав користувач
+        public ICollection<ChatMessage> ChatMessages { get; set; } // Повідомлення в чатах, які написав користувач
     }
 }

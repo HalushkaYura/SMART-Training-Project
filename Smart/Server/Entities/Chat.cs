@@ -2,11 +2,13 @@
 {
     public class Chat
     {
-        public int ChatId { get; set; }
-        public int ProjectId { get; set; }
-        public DateTime CreatedDate { get; set; }
+        public int ChatId { get; set; } // Ідентифікатор чату
+        public int ProjectId { get; set; } // Ідентифікатор проекту, до якого відноситься чат
+        public DateTime CreatedDate { get; set; } // Дата створення чату
 
-        public Project Project { get; set; }
-        public ICollection<ChatMessage> ChatMessages { get; set; }
+        public Project Project { get; set; } // Проект, до якого відноситься чат
+
+        public ICollection<ChatMessage> ChatMessages { get; set; } // Повідомлення у чаті
+
     }
 }
