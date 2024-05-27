@@ -9,11 +9,11 @@ namespace Smart.Server.Entities
         public string Lastname { get; set; }
         public DateTime BirthDate { get; set; }
 
-        public ICollection<Project> Projects { get; set; }
-        public ICollection<WorkItem> CreatedTasks { get; set; }
-        public ICollection<WorkItem> AssignedTasks { get; set; }
-        public ICollection<Comment> Comments { get; set; }
-        public ICollection<Attachment> Attachments { get; set; }
-        public ICollection<ChatMessage> ChatMessages { get; set; }
+        public ICollection<Project>? Projects { get; set; }
+        public ICollection<WorkItem>? CreatedTasks { get; set; }
+        public ICollection<WorkItem>? AssignedTasks { get; set; }
+        public ICollection<Comment>? Comments { get; set; }
+        public ICollection<Attachment>? Attachments { get; set; }
+        public ICollection<ChatMessage>? ChatMessages { get; set; }
     }
 }
