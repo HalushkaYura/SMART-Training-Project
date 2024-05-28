@@ -1,4 +1,6 @@
 ﻿@using Radzen
+@* @using Microsoft.AspNetCore.Identity *@
+
 @inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
@@ -6,23 +8,30 @@
 @inject TooltipService TooltipService 
 @inject ContextMenuService ContextMenuService 
 @inject NotificationService NotificationService 
+@* @inject UserManager<User> UserManager *@
 <RadzenComponents />
 
 <RadzenLayout style="grid-template-areas: 'rz-sidebar rz-header' 'rz-sidebar rz-body';">
 
-    <RadzenHeader  Style="background-color:white; color:black">
-        <RadzenRow JustifyContent="JustifyContent.Start" AlignItems="AlignItems.Center"  Gap="0" >
+    <RadzenHeader Style="background-color:white; color:black">
+        <RadzenRow JustifyContent="JustifyContent.Start" AlignItems="AlignItems.Center" Gap="0">
             <RadzenColumn Size="5">
-
-                <RadzenRow>
+                <div class="d-flex justify-content-start align-items-start">
                     <RadzenSidebarToggle Click="@SidebarToggleClick" Style="color:black"></RadzenSidebarToggle>
-                    <RadzenText Text="Hello " Style="font-size:large; margin-top:10px;"></RadzenText>
-                </RadzenRow>
-
-
+                    @if(true)
+                    {
+                        <RadzenText Text="Hello " Style="font-size:large; margin-top:10px; color:black;"></RadzenText>
+                    }
+                </div>
             </RadzenColumn>
             <RadzenColumn Size="7">
-                <RadzenStack AlignItems="AlignItems.Center" Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End"></RadzenStack>
+                @if(true)
+                {
+                    <div class="d-flex justify-content-end align-items-center">
+                        <RadzenButton Text="Login" Icon="login" Style="color:whitesmoke; margin-right: 10px; background-color: dimgrey" Click="@(e => NavigationManager.NavigateTo("/Identity/Account/Login", true))" />
+                        <RadzenButton Text="Register" Icon="person_add" Style="color:whitesmoke; margin-right: 10px; background-color: dimgrey " Click="@(e => NavigationManager.NavigateTo("/Identity/Account/Register", true))" />
+                    </div>
+                }
             </RadzenColumn>
         </RadzenRow>
     </RadzenHeader>
@@ -49,8 +58,6 @@
             <RadzenPanelMenuItem Text="Faculties" Icon="account_balance" Style="color:antiquewhite" Click="@(e => NavigationManager.NavigateTo("faculty"))" />
             <RadzenPanelMenuItem Text="Students" Icon="assignment_ind" Style="color:antiquewhite" Click="@(e => NavigationManager.NavigateTo("student"))" />
             <RadzenPanelMenuItem Text="Groups" Style="color:antiquewhite" Icon="dns" Click="@(e => NavigationManager.NavigateTo("groups"))" />
-            <RadzenPanelMenuItem Text="Login" Icon="login" Style="color:antiquewhite" Click="@(e => NavigationManager.NavigateTo("/Identity/Account/Login", true))" />
-            <RadzenPanelMenuItem Text="Register" Icon="person_add" Style="color:antiquewhite" Click="@(e => NavigationManager.NavigateTo("/Identity/Account/Register", true))" />
         </RadzenPanelMenu>
     </RadzenSidebar>
 </RadzenLayout>

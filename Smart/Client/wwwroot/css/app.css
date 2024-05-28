@@ -99,3 +99,12 @@ a, .btn-link {
     .loading-progress-text:after {
         content: var(--blazor-load-percentage-text, "Loading");
     }
+.login-button, .register-button {
+    background-color: transparent;
+    border-color: transparent;
+}
+
+.login-button:hover, .register-button:hover {
+    background-color: white;
+    color: black;
+}

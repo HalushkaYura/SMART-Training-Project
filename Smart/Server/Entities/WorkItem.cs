@@ -1,11 +1,12 @@
 ﻿using Smart.Server.Helpers.Enums;
+using Smart.Shared.Interface;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Net.Mail;
 using System.Xml.Linq;
 
 namespace Smart.Server.Entities
 {
-    public class WorkItem
+    public class WorkItem : IBaseEntity
     {
         public int WorkItemId { get; set; } // Ідентифікатор робочого елементу
         public int ProjectId { get; set; } // Ідентифікатор проекту, до якого належить робочий елемент

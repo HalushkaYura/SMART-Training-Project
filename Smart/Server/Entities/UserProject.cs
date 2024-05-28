@@ -1,6 +1,8 @@
-﻿namespace Smart.Server.Entities
+﻿using Smart.Shared.Interface;
+
+namespace Smart.Server.Entities
 {
-    public class UserProject
+    public class UserProject : IBaseEntity
     {
         public string UserId { get; set; } // Ідентифікатор користувача
         public int ProjectId { get; set; } // Ідентифікатор проекту

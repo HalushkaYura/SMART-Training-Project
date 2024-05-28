@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Smart.Shared.Interface;
 
 namespace Smart.Server.Entities
 {
-    public class User : IdentityUser
+    public class User : IdentityUser,  IBaseEntity
     {
         public string Firstname { get; set; } // Ім'я користувача
         public string Lastname { get; set; }  // Прізвище користувача

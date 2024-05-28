@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Radzen;
-using Smart.Client;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Smart.Client
 {
@@ -23,6 +21,7 @@ namespace Smart.Client
             builder.Services.AddScoped<TooltipService>();
             builder.Services.AddScoped<ContextMenuService>();
             builder.Services.AddRadzenComponents();
+            builder.Services.AddAuthorizationCore();
 
             await builder.Build().RunAsync();
         }

@@ -1,6 +1,8 @@
-﻿namespace Smart.Server.Entities
+﻿using Smart.Shared.Interface;
+
+namespace Smart.Server.Entities
 {
-    public class Attachment
+    public class Attachment : IBaseEntity
     {
        public int AttachmentId { get; set; } // Ідентифікатор вкладення
         public int WorkItemId { get; set; } // Ідентифікатор робочого елементу, до якого відноситься вкладення

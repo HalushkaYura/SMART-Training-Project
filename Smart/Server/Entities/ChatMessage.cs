@@ -1,6 +1,8 @@
-﻿namespace Smart.Server.Entities
+﻿using Smart.Shared.Interface;
+
+namespace Smart.Server.Entities
 {
-    public class ChatMessage
+    public class ChatMessage : IBaseEntity
     {
         public int ChatMessageId { get; set; } // Ідентифікатор повідомлення
         public int ChatId { get; set; } // Ідентифікатор чату, до якого відноситься повідомлення
