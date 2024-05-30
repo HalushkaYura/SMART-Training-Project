@@ -1,6 +1,7 @@
-﻿@using Radzen
-@* @using Microsoft.AspNetCore.Identity *@
-
+﻿@using Newtonsoft.Json
+@using Radzen
+@using Smart.Shared.DTOs.UserDTO
+@using Smart.Shared.DTOs.UserDTO
 @inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
@@ -8,7 +9,8 @@
 @inject TooltipService TooltipService 
 @inject ContextMenuService ContextMenuService 
 @inject NotificationService NotificationService 
-@* @inject UserManager<User> UserManager *@
+@inject HttpClient HttpClient
+
 <RadzenComponents />
 
 <RadzenLayout style="grid-template-areas: 'rz-sidebar rz-header' 'rz-sidebar rz-body';">
@@ -18,20 +20,22 @@
             <RadzenColumn Size="5">
                 <div class="d-flex justify-content-start align-items-start">
                     <RadzenSidebarToggle Click="@SidebarToggleClick" Style="color:black"></RadzenSidebarToggle>
-                    @if(true)
+                    @if (isAuthenticated && userInfo != null)
                     {
-                        <RadzenText Text="Hello " Style="font-size:large; margin-top:10px; color:black;"></RadzenText>
+                        <RadzenText Style="font-size: large; margin-top: 10px; color: black;">
+                            Hello @userInfo.Firstname
+                        </RadzenText>
                     }
+
                 </div>
             </RadzenColumn>
             <RadzenColumn Size="7">
-                @if(true)
-                {
+
                     <div class="d-flex justify-content-end align-items-center">
-                        <RadzenButton Text="Login" Icon="login" Style="color:whitesmoke; margin-right: 10px; background-color: dimgrey" Click="@(e => NavigationManager.NavigateTo("/Identity/Account/Login", true))" />
-                        <RadzenButton Text="Register" Icon="person_add" Style="color:whitesmoke; margin-right: 10px; background-color: dimgrey " Click="@(e => NavigationManager.NavigateTo("/Identity/Account/Register", true))" />
+
+                                <RadzenButton Text="Login" Icon="login" Style="color:whitesmoke; margin-right: 10px; background-color: dimgrey" Click="@(e => NavigationManager.NavigateTo("/Identity/Account/Login", true))" />
+                                <RadzenButton Text="Register" Icon="person_add" Style="color:whitesmoke; margin-right: 10px; background-color: dimgrey " Click="@(e => NavigationManager.NavigateTo("/Identity/Account/Register", true))" />
                     </div>
-                }
             </RadzenColumn>
         </RadzenRow>
     </RadzenHeader>
@@ -64,7 +68,48 @@
 
 @code {
     private bool sidebarExpanded = true;
+    private bool isAuthenticated;
+    private UserInfoDTO userInfo;
 
+    protected override async Task OnInitializedAsync()
+    {
+        isAuthenticated = await GetAuthenticationStatus();
+        if (isAuthenticated)
+        {
+            // Отримайте інформацію про користувача
+            userInfo = await GetUserInfo();
+        }
+    }
+
+
+    private async Task<bool> GetAuthenticationStatus()
+    {
+        var response = await HttpClient.GetAsync("api/auth/IsAuthenticated");
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            return bool.TryParse(content, out bool isAuthenticated) && isAuthenticated;
+        }
+        else
+        {
+            // Обробка помилок
+            return false;
+        }
+    }
+    private async Task<UserInfoDTO> GetUserInfo()
+    {
+        var response = await HttpClient.GetAsync("api/user/currentUser");
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+
+            return JsonConvert.DeserializeObject<UserInfoDTO>(content);
+        }
+        else
+        {
+            return null;
+        }
+    }
     void SidebarToggleClick()
     {
         sidebarExpanded = !sidebarExpanded;

@@ -3,11 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.8.34316.72
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart.Server", "Smart\Server\Smart.Server.csproj", "{AF21B372-734D-4AE9-A434-BCD1C8AD4247}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Server", "Smart\Server\Smart.Server.csproj", "{AF21B372-734D-4AE9-A434-BCD1C8AD4247}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart.Client", "Smart\Client\Smart.Client.csproj", "{11CA86CE-5FA0-4CF8-96F3-59E2C128E6F1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Client", "Smart\Client\Smart.Client.csproj", "{11CA86CE-5FA0-4CF8-96F3-59E2C128E6F1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart.Shared", "Smart\Shared\Smart.Shared.csproj", "{6212B20C-8BB5-4151-B7AA-53F586BE8206}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Shared", "Smart\Shared\Smart.Shared.csproj", "{6212B20C-8BB5-4151-B7AA-53F586BE8206}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart.Infrastructure", "Smart.Infrastructure\Smart.Infrastructure.csproj", "{09738A21-F185-495C-8056-175B9ADC5719}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart.Core", "Smart.Core\Smart.Core.csproj", "{6E8EF024-057F-4288-81BD-56E3B442DAEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +31,14 @@ Global
 		{6212B20C-8BB5-4151-B7AA-53F586BE8206}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6212B20C-8BB5-4151-B7AA-53F586BE8206}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6212B20C-8BB5-4151-B7AA-53F586BE8206}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09738A21-F185-495C-8056-175B9ADC5719}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09738A21-F185-495C-8056-175B9ADC5719}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09738A21-F185-495C-8056-175B9ADC5719}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09738A21-F185-495C-8056-175B9ADC5719}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E8EF024-057F-4288-81BD-56E3B442DAEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E8EF024-057F-4288-81BD-56E3B442DAEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E8EF024-057F-4288-81BD-56E3B442DAEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E8EF024-057F-4288-81BD-56E3B442DAEB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

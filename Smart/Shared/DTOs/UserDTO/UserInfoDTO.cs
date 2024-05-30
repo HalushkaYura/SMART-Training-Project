@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Globalization;
 
-namespace TaskBoard.Core.DTOs.UserDTO
+namespace Smart.Shared.DTOs.UserDTO
 {
     public class UserInfoDTO
     {

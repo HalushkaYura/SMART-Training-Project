@@ -1,8 +1,6 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Smart.Server.Data;
-using Smart.Server.Entities;
+using Smart.Core.Entities;
+using Smart.Infrastructure.Data;
 
 namespace Smart
 {
@@ -15,15 +13,19 @@ namespace Smart
 
             builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
 
-            builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<ApplicationDbContext>();
-
+            builder.Services.AddDefaultIdentity<User>(options => options.SignIn.RequireConfirmedAccount = true)
+                .AddEntityFrameworkStores<ApplicationDbContext>();
 
             // Add services to the container.
-
             builder.Services.AddControllersWithViews();
             builder.Services.AddRazorPages();
+            //???????????? ???????
+            builder.Services.AddSwaggerGen(options => { });
 
             var app = builder.Build();
+
+            app.UseSwagger();
+            app.UseSwaggerUI(options => { });
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -33,12 +35,10 @@ namespace Smart
             else
             {
                 app.UseExceptionHandler("/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
             app.UseHttpsRedirection();
-
             app.UseBlazorFrameworkFiles();
             app.UseStaticFiles();
 
