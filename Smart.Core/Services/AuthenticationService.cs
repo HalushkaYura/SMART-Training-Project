@@ -6,15 +6,15 @@ using Smart.Core.Entities.RefreshTokenEntity;
 using Smart.Core.Exeptions;
 using Smart.Core.Helpers.Mails;
 using Smart.Core.Helpers.Mails.ViewModels;
-using Smart.Core.Interface.Repository;
-using Smart.Core.Interface.Services;
+using Smart.Core.Interfaces.Repository;
+using Smart.Core.Interfaces.Services;
 using Smart.Core.Resources;
 using Smart.Core.Roles;
 using Smart.Shared.DTOs.UserDTO;
 using System.Net;
 using System.Text;
 
-namespace Smart.Core.Service
+namespace Smart.Core.Services
 {
     public class AuthenticationService : IAuthenticationService
 
@@ -125,7 +125,7 @@ namespace Smart.Core.Service
             await _emailSenderService.SendEmailAsync(new MailRequest()
             {
                 ToEmail = user.Email,
-                Subject = "Moneyboard Reset Password",
+                Subject = "Smart Reset Password",
                 Body = await _templateService.GetTemplateHtmlAsStringAsync("Mails/ResetPassword",
                     new UserToken() { Token = encodedCode, UserName = user.UserName, Uri = _clientUrl.Value.ApplicationUrl })
             });
@@ -229,7 +229,7 @@ namespace Smart.Core.Service
             var message = new MailRequest
             {
                 ToEmail = user.Email,
-                Subject = "Moneyboard authentication code",
+                Subject = "Smart authentication code",
                 Body = await _templateService.GetTemplateHtmlAsStringAsync("Mails/TwoFactorCode",
                     new UserToken() { Token = twoFactorToken, UserName = user.UserName, Uri = _clientUrl.Value.ApplicationUrl })
             };

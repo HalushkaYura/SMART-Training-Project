@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Smart.Core.Entities.RefreshTokenEntity;
-using Smart.Core.Interface;
+using Smart.Core.Interfaces;
 
 namespace Smart.Core.Entities
 {

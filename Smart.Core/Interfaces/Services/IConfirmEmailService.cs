@@ -1,7 +1,7 @@
 ﻿using Smart.Shared.DTOs.UserDTO;
 using Task = System.Threading.Tasks.Task;
 
-namespace Smart.Core.Interface.Services
+namespace Smart.Core.Interfaces.Services
 {
     public interface IConfirmEmailService
     {

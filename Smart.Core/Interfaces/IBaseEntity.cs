@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Smart.Core.Interface
+namespace Smart.Core.Interfaces
 {
     public interface IBaseEntity
     {

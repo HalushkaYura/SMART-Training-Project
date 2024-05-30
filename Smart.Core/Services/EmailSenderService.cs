@@ -2,9 +2,9 @@
 using SendGrid;
 using SendGrid.Helpers.Mail;
 using Smart.Core.Helpers.Mails;
-using Smart.Core.Interface.Services;
+using Smart.Core.Interfaces.Services;
 
-namespace Smart.Core.Service
+namespace Smart.Core.Services
 {
     public class EmailSenderService : IEmailSenderService
     {

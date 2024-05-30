@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Smart.Core.Entities;
-using Smart.Core.Interface.Services;
+using Smart.Core.Interfaces.Services;
 using Smart.Shared.DTOs.UserDTO;
 
-namespace Smart.Core.Service
+namespace Smart.Core.Services
 {
     public class UserService : IUserService
     {

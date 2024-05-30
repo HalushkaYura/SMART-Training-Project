@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Smart.Core.Interface.Services
+namespace Smart.Core.Interfaces.Services
 { 
     public interface ITemplateService
     {

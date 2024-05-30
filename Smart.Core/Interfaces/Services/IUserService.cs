@@ -2,7 +2,7 @@
 
 using Smart.Shared.DTOs.UserDTO;
 
-namespace Smart.Core.Interface.Services
+namespace Smart.Core.Interfaces.Services
 {
     public interface IUserService
     {

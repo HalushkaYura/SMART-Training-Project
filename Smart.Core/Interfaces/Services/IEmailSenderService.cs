@@ -3,7 +3,7 @@ using SendGrid;
 using SendGrid.Helpers.Mail;
 using System.Threading.Tasks;
 
-namespace Smart.Core.Interface.Services
+namespace Smart.Core.Interfaces.Services
 {
     public interface IEmailSenderService
     {

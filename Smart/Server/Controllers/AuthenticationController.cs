@@ -3,7 +3,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Smart.Core.Entities;
-using Smart.Core.Interface.Services;
+using Smart.Core.Interfaces.Services;
 using Smart.Core.Roles;
 using Smart.Shared.DTOs.UserDTO;
 using System.Security.Claims;

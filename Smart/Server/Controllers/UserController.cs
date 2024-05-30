@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Smart.Core.Interface.Services;
+using Smart.Core.Interfaces.Services;
 
 namespace Smart.Server.Controllers
 {

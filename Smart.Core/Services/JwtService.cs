@@ -7,14 +7,15 @@ using Smart.Core.DTO.UserDTO;
 using Smart.Core.Entities;
 using Smart.Core.Exeptions;
 using Smart.Core.Helpers;
-using Smart.Core.Interface.Services;
+using Smart.Core.Interfaces.Services;
 using Smart.Core.Resources;
 using Smart.Shared.DTOs.UserDTO;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-namespace Smart.Server.Controllers
+
+namespace Smart.Core.Services
 {
     public class JwtService : IJwtService
     {

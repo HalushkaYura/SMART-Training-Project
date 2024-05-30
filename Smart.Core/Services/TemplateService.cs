@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Routing;
-using Smart.Core.Interface.Services;
+using Smart.Core.Interfaces.Services;
 
-namespace Smart.Core.Service
+namespace Smart.Core.Services
 {
     public class TemplateService : ITemplateService
     {

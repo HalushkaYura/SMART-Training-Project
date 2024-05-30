@@ -1,7 +1,7 @@
 ﻿using Ardalis.Specification;
 using System.Linq.Expressions;
 
-namespace Smart.Core.Interface.Repository
+namespace Smart.Core.Interfaces.Repository
 {
     public interface IRepository<TEntity> where TEntity : IBaseEntity
     {

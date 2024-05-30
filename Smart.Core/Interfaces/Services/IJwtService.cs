@@ -3,7 +3,7 @@ using Smart.Core.Entities;
 using Smart.Shared.DTOs.UserDTO;
 using System.Security.Claims;
 
-namespace Smart.Core.Interface.Services
+namespace Smart.Core.Interfaces.Services
 {
     public interface IJwtService
     {

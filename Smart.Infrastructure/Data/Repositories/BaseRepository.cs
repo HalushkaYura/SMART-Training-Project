@@ -1,8 +1,8 @@
 ﻿using Ardalis.Specification;
 using Ardalis.Specification.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Smart.Core.Interface;
-using Smart.Core.Interface.Repository;
+using Smart.Core.Interfaces;
+using Smart.Core.Interfaces.Repository;
 using Smart.Infrastructure.Data;
 using System.Linq.Expressions;
 

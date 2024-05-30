@@ -4,12 +4,12 @@ using Smart.Core.Entities;
 using Smart.Core.Exeptions;
 using Smart.Core.Helpers.Mails;
 using Smart.Core.Helpers.Mails.ViewModels;
-using Smart.Core.Interface.Services;
+using Smart.Core.Interfaces.Services;
 using Smart.Core.Resources;
 using Smart.Shared.DTOs.UserDTO;
 using System.Text;
 
-namespace Smart.Core.Service
+namespace Smart.Core.Services
 {
     public class ConfirmEmailService : IConfirmEmailService
     {
@@ -41,7 +41,7 @@ namespace Smart.Core.Service
             await _emailService.SendEmailAsync(new MailRequest()
             {
                 ToEmail = user.Email,
-                Subject = "Moneyboard Confirm Email",
+                Subject = "Smart Confirm Email",
                 Body = await _templateService.GetTemplateHtmlAsStringAsync("Mails/ConfirmEmail",
                     new UserToken() { Token = encodedCode, UserName = user.UserName, Uri = _clientUrl.ApplicationUrl })
             });

@@ -1,4 +1,4 @@
-﻿using Smart.Core.Interface;
+﻿using Smart.Core.Interfaces;
 
 namespace Smart.Core.Entities
 {
