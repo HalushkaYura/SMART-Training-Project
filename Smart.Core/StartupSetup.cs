@@ -21,7 +21,6 @@ namespace Smart.Core
             services.AddScoped<IConfirmEmailService, ConfirmEmailService>();
             services.AddScoped<ITemplateService, TemplateService>();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
-            services.AddScoped<IUserService, UserService>();
             //services.AddScoped<IFileService, FileService>();
             //services.AddScoped<ILocaleStorageService, LocaleStorageService>();
             //services.AddScoped<INotificationService, NotificationService>();
@@ -59,7 +58,7 @@ namespace Smart.Core
 
         public static void ConfigureClientApplicationUrl(this IServiceCollection services, IConfiguration configuration)
         {
-            services.Configure<ClientUrl>(configuration.GetSection("ClientServer"));
+            services.Configure<ClientUrl>(configuration.GetSection("ApplicationUrl"));
         }
 
         /*public static void ConfigureValidationSettings(this IServiceCollection services, IConfiguration configuration)

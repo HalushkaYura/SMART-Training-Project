@@ -9,9 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Client", "Smart\Clien
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Shared", "Smart\Shared\Smart.Shared.csproj", "{6212B20C-8BB5-4151-B7AA-53F586BE8206}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart.Infrastructure", "Smart.Infrastructure\Smart.Infrastructure.csproj", "{09738A21-F185-495C-8056-175B9ADC5719}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Infrastructure", "Smart.Infrastructure\Smart.Infrastructure.csproj", "{09738A21-F185-495C-8056-175B9ADC5719}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smart.Core", "Smart.Core\Smart.Core.csproj", "{6E8EF024-057F-4288-81BD-56E3B442DAEB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smart.Core", "Smart.Core\Smart.Core.csproj", "{6E8EF024-057F-4288-81BD-56E3B442DAEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

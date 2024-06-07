@@ -1,6 +1,8 @@
 using AutoMapper;
 using Smart.Core.Entities;
+using Smart.Shared.DTOs.ProjectDTO;
 using Smart.Shared.DTOs.UserDTO;
+using System.Data;
 
 namespace Smart.Core.Helpers
 {
@@ -8,17 +10,24 @@ namespace Smart.Core.Helpers
     {
         public ApplicationProfile()
         {
-            //CreateMap<BoardCreateDTO, Board>().ReverseMap();
-            //CreateMap<BoardDTO, Board>().ReverseMap();
+            CreateMap<User, UserChangeInfoDTO>().ReverseMap();
+            CreateMap<UserRegistrationDTO, User>().ReverseMap();
+            CreateMap<User, UserChangeInfoDTO>();
 
-            //CreateMap<AssignmentCreateDTO, Assignment>().ReverseMap();
-            //CreateMap<AssignmentDTO, Assignment>()
-            //    .ForMember(x => x.UserId, usr => usr.MapFrom(srs => srs.UserId))
-            //    .ReverseMap();
+            CreateMap<ProjectCreateDTO, Project>().ReverseMap();
+            CreateMap<Project, ProjectInfoDTO>().ReverseMap();
+            CreateMap<Project, ProjectEditDTO>();
 
-            CreateMap<UserInfoDTO, User>()
-                .ForMember(x => x.Id, usr => usr.MapFrom(srs => srs.UserId)).ReverseMap();
 
+            CreateMap<ProjectForUserDTO, Project>().ReverseMap();
+            CreateMap<Project, ProjectDetailsDTO>().ReverseMap(); 
+
+
+            CreateMap<User, ProjectMemberDTO>()
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => $"{src.Firstname} {src.Lastname}"))
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id));
+
+            CreateMap<UserProject, ProjectMemberDTO>();
 
 
             /*CreateMap<InviteUser, UserInviteInfoDTO>()

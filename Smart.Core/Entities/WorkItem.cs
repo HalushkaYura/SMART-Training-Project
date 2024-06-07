@@ -15,7 +15,6 @@ namespace Smart.Core.Entities
         public DateTime StartDate { get; set; } // Дата початку робочого елементу
         public DateTime EndDate { get; set; } // Дата завершення робочого елементу
         public string AssignedUserId { get; set; } // Ідентифікатор користувача, якому призначено робочий елемент
-        public DateTime CreatedDate { get; set; } // Дата створення робочого елементу
         public string CreatedByUserId { get; set; } // Ідентифікатор користувача, який створив робочий елемент
 
         public Project Project { get; set; } // Проект, до якого належить робочий елемент

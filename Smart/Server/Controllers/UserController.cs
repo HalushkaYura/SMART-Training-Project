@@ -1,64 +1,76 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Smart.Core.Interfaces.Services;
+using Smart.Shared.DTOs.UserDTO;
+using System;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace Smart.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private string UserId => User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
         public UserController(IUserService userService)
         {
             _userService = userService;
         }
 
-        [HttpGet("userInfo{userId}")]
-        public async Task<IActionResult> GetUserById(string userId)
-        {
-            try
-            {
-                var userInfo = await _userService.GetUserByIdAsync(userId);
-                if (userInfo == null)
-                {
-                    return NotFound();
-                }
-                return Ok(userInfo);
-            }
-            catch (Exception ex)
-            {
 
-                return StatusCode(StatusCodes.Status500InternalServerError, "Помилка сервера");
-            }
+        [Authorize]
+        [HttpPut]
+        [Route("edit")]
+        public async Task<IActionResult> EditUserDateAsync([FromBody] UserEditDTO userEditDTO)
+        {
+            await _userService.EditUserDateAsync(userEditDTO, UserId);
+
+            return Ok();
         }
+
+        [Authorize]
         [HttpGet]
-        [Route("currentUser")]
-        public async Task<IActionResult> GetCurrentUserInfo()
+        [Route("info")]
+        public async Task<IActionResult> UserPersonalIngoAsync()
         {
-            try
-            {
-                // Отримуємо ідентифікатор поточного користувача з клеймом авторизації
-                var userId = User.FindFirst("sub")?.Value;
-                if (userId == null)
-                {
-                    return BadRequest("Ідентифікатор користувача не знайдено");
-                }
+            var userInfo = await _userService.UserInfoAsync(UserId);
 
-                var userInfo = await _userService.GetUserByIdAsync(userId);
-                if (userInfo == null)
-                {
-                    return NotFound();
-                }
+            return Ok(userInfo);
+        }
+        ////////////////////////////////////////////////////////////////////////////////
 
-                return Ok(userInfo);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Помилка сервера");
-            }
+
+        [Authorize]
+        [HttpPut]
+        [Route("upload-foto")]
+        public async Task<IActionResult> UploadUserImage([FromForm] UserImageUploadDTO imageDTO)
+        {
+            await _userService.UploadAvatar(imageDTO, UserId);
+            return Ok();
+
+        }
+        [Authorize]
+        [HttpGet]
+        [Route("get-image/{email}")]
+        public async Task<IActionResult> GetUserImage(string email)
+        {
+            var imageUrl = await _userService.GetUserImageAsync(email);
+            return Ok(imageUrl);
+        }
+
+        [Authorize]
+        [HttpDelete]
+        [Route("delete")]
+        public async Task<IActionResult> DeleteUserAccount()
+        {
+            await _userService.DeleteUserAccount(UserId);
+
+            return Ok();
         }
 
     }

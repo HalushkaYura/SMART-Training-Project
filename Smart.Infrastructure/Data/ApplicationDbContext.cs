@@ -23,51 +23,8 @@ namespace Smart.Infrastructure.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            modelBuilder.Entity<Attachment>()
-                .HasOne(a => a.AttachedWorkItem)
-                .WithMany(w => w.Attachments)
-                .HasForeignKey(a => a.WorkItemId);
-
-            modelBuilder.Entity<Attachment>()
-                .HasOne(a => a.UploadedByUser)
-                .WithMany(u => u.Attachments)
-                .HasForeignKey(a => a.UploadedByUserId);
-
-            modelBuilder.Entity<Chat>()
-                .HasMany(c => c.ChatMessages)
-                .WithOne(cm => cm.Chat)
-                .HasForeignKey(cm => cm.ChatId);
-
-            modelBuilder.Entity<ChatMessage>()
-                .HasOne(cm => cm.Chat)
-                .WithMany(c => c.ChatMessages)
-                .HasForeignKey(cm => cm.ChatId);
-
-            modelBuilder.Entity<ChatMessage>()
-                .HasOne(cm => cm.User)
-                .WithMany(u => u.ChatMessages)
-                .HasForeignKey(cm => cm.UserId);
-
-            modelBuilder.Entity<Comment>()
-                .HasOne(c => c.WorkItem)
-                .WithMany(w => w.Comments)
-                .HasForeignKey(c => c.TaskId);
-
-            modelBuilder.Entity<Comment>()
-                .HasOne(c => c.User)
-                .WithMany(u => u.Comments)
-                .HasForeignKey(c => c.UserId);
-
-            modelBuilder.Entity<Project>()
-                .HasMany(p => p.UserProjects)
-                .WithOne(up => up.Project)
-                .HasForeignKey(up => up.ProjectId);
-
-            modelBuilder.Entity<Project>()
-                .HasMany(p => p.WorkItems)
-                .WithOne(w => w.Project)
-                .HasForeignKey(w => w.ProjectId);
+            
+            //налаштування усіх звязків між таблицями 
 
             modelBuilder.Entity<UserProject>()
                 .HasKey(up => new { up.UserId, up.ProjectId });
@@ -99,8 +56,57 @@ namespace Smart.Infrastructure.Data
 
             modelBuilder.Entity<WorkItem>()
                 .HasOne(w => w.CreatedByUser)
-                .WithMany()  // Для CreatedByUser не потрібно вказувати зворотний зв'язок, оскільки це є однонаправленим зв'язком
+                .WithMany()
                 .HasForeignKey(w => w.CreatedByUserId);
+
+            modelBuilder.Entity<Chat>()
+              .HasMany(c => c.ChatMessages)
+              .WithOne(cm => cm.Chat)
+              .HasForeignKey(cm => cm.ChatId);
+
+            modelBuilder.Entity<ChatMessage>()
+                .HasOne(cm => cm.Chat)
+                .WithMany(c => c.ChatMessages)
+                .HasForeignKey(cm => cm.ChatId);
+
+            modelBuilder.Entity<ChatMessage>()
+                .HasOne(cm => cm.User)
+                .WithMany(u => u.ChatMessages)
+                .HasForeignKey(cm => cm.UserId);
+
+            modelBuilder.Entity<Attachment>()
+                .HasOne(a => a.AttachedWorkItem)
+                .WithMany(w => w.Attachments)
+                .HasForeignKey(a => a.WorkItemId);
+
+            modelBuilder.Entity<Attachment>()
+                .HasOne(a => a.UploadedByUser)
+                .WithMany(u => u.Attachments)
+                .HasForeignKey(a => a.UploadedByUserId);
+
+
+
+            modelBuilder.Entity<Comment>()
+                .HasOne(c => c.WorkItem)
+                .WithMany(w => w.Comments)
+                .HasForeignKey(c => c.TaskId);
+
+            modelBuilder.Entity<Comment>()
+                .HasOne(c => c.User)
+                .WithMany(u => u.Comments)
+                .HasForeignKey(c => c.UserId);
+
+            modelBuilder.Entity<Project>()
+                .HasMany(p => p.UserProjects)
+                .WithOne(up => up.Project)
+                .HasForeignKey(up => up.ProjectId);
+
+            modelBuilder.Entity<Project>()
+                .HasMany(p => p.WorkItems)
+                .WithOne(w => w.Project)
+                .HasForeignKey(w => w.ProjectId);
+
+
         }
     }
 }

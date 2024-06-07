@@ -1,0 +1,73 @@
+﻿@* @page "/task/{TaskId}"
+
+<RadzenContent Container="main">
+    <RadzenHeading Size="H2" Text="@task.Name" />
+    <RadzenText TextStyle="TextStyle.Subtitle1">@task.Description</RadzenText>
+    <RadzenText TextStyle="TextStyle.Body1">Due Date: @task.DueDate.ToString("d")</RadzenText>
+    <RadzenText TextStyle="TextStyle.Body1">Priority: @GetPriorityName(task.Priority)</RadzenText>
+    <RadzenText TextStyle="TextStyle.Body1">Assigned To: @string.Join(", ", task.AssignedTo.Select(x => x.FullName))</RadzenText>
+
+    <RadzenHeading Size="H4" Text="Comments" />
+    <RadzenTextArea @bind-Value="@newComment" Label="Add Comment" />
+    <RadzenButton Text="Submit" Click="@SubmitComment" />
+
+    <RadzenListBox Data="@comments" TextProperty="Comment" />
+</RadzenContent>
+
+@code {
+    [Parameter]
+    public string TaskId { get; set; }
+
+    private Task task = new Task();
+    private List<Comment> comments = new List<Comment>();
+    private string newComment = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        task = await GetTaskData(TaskId);
+        comments = await GetTaskComments(TaskId);
+    }
+
+    private async Task<Task> GetTaskData(string taskId)
+    {
+        // Implement logic to fetch task data
+        return new Task
+        {
+            Id = taskId,
+            Name = "Sample Task",
+            Description = "This is a sample task description.",
+            DueDate = DateTime.Now.AddDays(7),
+            Priority = 2,
+            AssignedTo = new List<ProjectMember>
+            {
+                new ProjectMember { FullName = "John Doe" },
+                new ProjectMember { FullName = "Jane Smith" }
+            }
+        };
+    }
+
+    private async Task<List<Comment>> GetTaskComments(string taskId)
+    {
+        // Implement logic to fetch task comments
+        return new List<Comment>
+        {
+            new Comment { Comment = "This is a sample comment." },
+            new Comment { Comment = "Another sample comment." }
+        };
+    }
+
+    private string GetPriorityName(int priority)
+    {
+        return priorities.FirstOrDefault(p => p.Value == priority)?.Name ?? "Unknown";
+    }
+
+    private async Task SubmitComment()
+    {
+        if (!string.IsNullOrWhiteSpace(newComment))
+        {
+            // Implement logic to submit new comment
+            comments.Add(new Comment { Comment = newComment });
+            newComment = string.Empty;
+        }
+    }
+} *@

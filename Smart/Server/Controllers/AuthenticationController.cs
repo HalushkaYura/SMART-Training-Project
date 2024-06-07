@@ -52,6 +52,10 @@ namespace Smart.Server.Controllers
         [Route("logout")]
         public async Task<IActionResult> LogoutAsync([FromBody] UserAutorizationDTO userTokensDTO)
         {
+            if (string.IsNullOrEmpty(UserId))
+            {
+                return Unauthorized();
+            }
             await _authenticationService.LogoutAsync(userTokensDTO);
 
             return NoContent();

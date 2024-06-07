@@ -1,7 +1,9 @@
-﻿namespace Smart.Shared.DTOs.UserDTO
+﻿using Microsoft.AspNetCore.Http;
+
+namespace Smart.Shared.DTOs.UserDTO
 {
     public class UserImageUploadDTO
     {
-        //public IFormFile Image { get; set; }
+        public IFormFile Image { get; set; }
     }
 }

@@ -9,7 +9,6 @@ namespace Smart.Core.Entities
         public string Description { get; set; } // Опис проекту
         public DateTime StartDate { get; set; } // Дата початку проекту
         public DateTime EndDate { get; set; } // Дата завершення проекту
-        public DateTime CreatedDate { get; set; } // Дата створення проекту
         public string CreatedByUserId { get; set; } // Ідентифікатор користувача, який створив проект
 
         public User CreatedByUser { get; set; } // Користувач, який створив проект

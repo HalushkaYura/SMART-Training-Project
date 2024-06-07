@@ -22,53 +22,15 @@ namespace Smart.Core.Validation
                 .Length(3, 50);
 
 
-            /*RuleFor(user => user.Email)
-                .NotEmpty()
-                .Must(IsUniqueEmail).WithMessage("{PropertyName} already exists.");*/
-
-            RuleFor(user => user.CardNumber)
-              .NotEmpty()
-              .Matches("^[0-9]+$").When(user => !string.IsNullOrWhiteSpace(user.CardNumber))
-              .Matches(@"^\d{16}$").When(user => !string.IsNullOrWhiteSpace(user.CardNumber))
-              .Must(IsValidLuhnAlgorithm).WithMessage("{PropertyName} is not a valid credit card number.")
-              .When(user => !string.IsNullOrWhiteSpace(user.CardNumber));
+            //RuleFor(user => user.Email)
+            //    .NotEmpty()
+            //    .Must(IsUniqueEmail).WithMessage("{PropertyName} already exists.");
         }
 
-        /*private bool IsUniqueEmail(string email)
+        private bool IsUniqueEmail(string email)
         {
             var userObject = _userManager.FindByNameAsync(email).Result;
             return userObject == null;
-        }*/
-
-
-        private bool IsValidLuhnAlgorithm(string cardNumber)
-        {
-            if (string.IsNullOrWhiteSpace(cardNumber) || !cardNumber.All(char.IsDigit))
-            {
-                return true;
-            }
-            int sum = 0;
-            bool doubleDigit = false;
-
-            // Luhn Algorithm
-            for (int i = cardNumber.Length - 1; i >= 0; i--)
-            {
-                int digit = int.Parse(cardNumber[i].ToString());
-
-                if (doubleDigit)
-                {
-                    digit *= 2;
-                    if (digit > 9)
-                    {
-                        digit -= 9;
-                    }
-                }
-
-                sum += digit;
-                doubleDigit = !doubleDigit;
-            }
-
-            return sum % 10 == 0;
         }
 
     }

@@ -1,71 +1,84 @@
-﻿@using Newtonsoft.Json
+﻿@inherits LayoutComponentBase
+@using Newtonsoft.Json
 @using Radzen
 @using Smart.Shared.DTOs.UserDTO
-@using Smart.Shared.DTOs.UserDTO
-@inherits LayoutComponentBase
+@using System.Net.Http.Headers
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inject DialogService DialogService
-@inject TooltipService TooltipService 
-@inject ContextMenuService ContextMenuService 
-@inject NotificationService NotificationService 
+@inject TooltipService TooltipService
+@inject ContextMenuService ContextMenuService
+@inject NotificationService NotificationService
 @inject HttpClient HttpClient
 
 <RadzenComponents />
 
 <RadzenLayout style="grid-template-areas: 'rz-sidebar rz-header' 'rz-sidebar rz-body';">
-
-    <RadzenHeader Style="background-color:white; color:black">
-        <RadzenRow JustifyContent="JustifyContent.Start" AlignItems="AlignItems.Center" Gap="0">
-            <RadzenColumn Size="5">
-                <div class="d-flex justify-content-start align-items-start">
-                    <RadzenSidebarToggle Click="@SidebarToggleClick" Style="color:black"></RadzenSidebarToggle>
-                        <RadzenText Style="font-size: large; margin-top: 10px; color: black;">
-                            Hello @userInfo.Firstname
-                        </RadzenText>
-                </div>
-            </RadzenColumn>
-            <RadzenColumn Size="7">
-
-                    <div class="d-flex justify-content-end align-items-center">
-
-                                <RadzenButton Text="Login" Icon="login" Style="color:whitesmoke; margin-right: 10px; background-color: dimgrey" Click="@(e => NavigationManager.NavigateTo("/Identity/Account/Login", true))" />
-                                <RadzenButton Text="Register" Icon="person_add" Style="color:whitesmoke; margin-right: 10px; background-color: dimgrey " Click="@(e => NavigationManager.NavigateTo("/Identity/Account/Register", true))" />
+    @if (isLoading)
+    {
+        <RadzenBody>
+            <div class="rz-mx-auto rz-p-4">Loading...</div>
+        </RadzenBody>
+    }
+    else
+    {
+        <RadzenHeader Style="background-color:white; color:black">
+            <RadzenRow JustifyContent="JustifyContent.Start" AlignItems="AlignItems.Center" Gap="0">
+                <RadzenColumn Size="5">
+                    <div class="d-flex justify-content-start align-items-start">
+                        <RadzenSidebarToggle Click="@(async (args) => SidebarToggleClick())" Style="color:black"></RadzenSidebarToggle>
+                        @if (isAuthenticated )
+                        {
+                            <RadzenText Style="font-size: large; margin-top: 10px; color: black;">
+                                Hello @userInfo.Firstname @userInfo.Lastname !
+                            </RadzenText>
+                        }
                     </div>
-            </RadzenColumn>
-        </RadzenRow>
-    </RadzenHeader>
-
-    <RadzenBody Expanded="@sidebarExpanded">
-        <RadzenRow class="rz-mx-auto rz-px-4 rz-pt-2 rz-pt-md-4 rz-pt-lg-6 rz-pt-xl-12 rz-pb-2 rz-pb-lg-12" Style="max-width: 1440px;">
-            <RadzenColumn Size="12">
-                @Body
-            </RadzenColumn>
-        </RadzenRow>
-    </RadzenBody>
-
-    <RadzenSidebar Responsive="false " Style="width: max-content; border:none; background : #292731">
-
-        <RadzenStack AlignItems="Radzen.AlignItems.Center" class="rz-py-4 rz-py-lg-6" >
-            <RadzenRow AlignItems="Radzen.AlignItems.Center" JustifyContent="Radzen.JustifyContent.Start ">
-                <RadzenImage Path="/logo.png" style="width: 38px; height: 38px; margin-left: 10px; margin-right: 10px;" Click="@(e => NavigationManager.NavigateTo("/"))"></RadzenImage>
-                <RadzenText Text="SMART  " TextStyle="Radzen.Blazor.TextStyle.Subtitle2" style="@(sidebarExpanded ? "color: white; margin-bottom: 0px; padding-right: 10px; font-size: 20px;" : "display: none; ")" />
+                </RadzenColumn>
+                <RadzenColumn Size="7">
+                    <div class="d-flex justify-content-end align-items-center">
+                        @if (!isAuthenticated || userInfo == null)
+                        {
+                            <RadzenButton Text="Login" Icon="login" Style="color:whitesmoke; margin-right: 10px; background-color: dimgrey" Click="@(args => NavigationManager.NavigateTo("/Login"))" />
+                            <RadzenButton Text="Register" Icon="person_add" Style="color:whitesmoke; margin-right: 10px; background-color: dimgrey" Click="@(args => NavigationManager.NavigateTo("/Register"))" />
+                        }
+                        else
+                        {
+                            <RadzenButton Text="Logout" Icon="logout" Style="color:whitesmoke; margin-right: 10px; background-color: dimgrey" Click="@Logout" />
+                        }
+                    </div>
+                </RadzenColumn>
             </RadzenRow>
-        </RadzenStack>
+        </RadzenHeader>
 
+        <RadzenBody Expanded="@sidebarExpanded">
+            <RadzenRow class="rz-mx-auto rz-px-4 rz-pt-2 rz-pt-md-4 rz-pt-lg-6 rz-pt-xl-12 rz-pb-2 rz-pb-lg-12" Style="max-width: 1440px;">
+                <RadzenColumn Size="12">
+                    @Body
+                </RadzenColumn>
+            </RadzenRow>
+        </RadzenBody>
 
-        <RadzenPanelMenu DisplayStyle="@(sidebarExpanded ? MenuItemDisplayStyle.IconAndText  : MenuItemDisplayStyle.Icon)" ShowArrow="true" Style="background-color: #292731; border:none">
-            <RadzenPanelMenuItem Text="Faculties" Icon="account_balance" Style="color:antiquewhite" Click="@(e => NavigationManager.NavigateTo("faculty"))" />
-            <RadzenPanelMenuItem Text="Students" Icon="assignment_ind" Style="color:antiquewhite" Click="@(e => NavigationManager.NavigateTo("student"))" />
-            <RadzenPanelMenuItem Text="Groups" Style="color:antiquewhite" Icon="dns" Click="@(e => NavigationManager.NavigateTo("groups"))" />
-        </RadzenPanelMenu>
-    </RadzenSidebar>
+        <RadzenSidebar Responsive="false" Style="width: max-content; border:none; background : #292731">
+            <RadzenStack AlignItems="Radzen.AlignItems.Center" class="rz-py-4 rz-py-lg-6" @onclick="NavigateToHome">
+                <RadzenRow AlignItems="Radzen.AlignItems.Center" JustifyContent="Radzen.JustifyContent.Start">
+                    <RadzenImage Path="/logo.png" Style="width: 38px; height: 38px; margin-left: 10px; margin-right: 5px;"></RadzenImage>
+                    <RadzenText Text="SMART" TextStyle="Radzen.Blazor.TextStyle.Subtitle2" Style="@(sidebarExpanded ? "color: white; margin-bottom: 0px; padding-right: 10px; font-size: 20px;" : "display: none;")"></RadzenText>
+                </RadzenRow>
+            </RadzenStack>
+
+            <RadzenPanelMenu DisplayStyle="@(sidebarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="true" Style="background-color: #292731; border:none">
+            </RadzenPanelMenu>
+        </RadzenSidebar>
+    }
 </RadzenLayout>
 
 @code {
     private bool sidebarExpanded = true;
-    private bool isAuthenticated;
-    private UserInfoDTO userInfo;
+    private bool isLoading = true;
+    [Parameter]
+    public bool isAuthenticated { get; set; }
+    private UserChangeInfoDTO userInfo;
 
     protected override async Task OnInitializedAsync()
     {
@@ -74,11 +87,19 @@
         {
             userInfo = await GetUserInfo();
         }
+        isLoading = false;
+        StateHasChanged();
     }
-
 
     private async Task<bool> GetAuthenticationStatus()
     {
+        var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
+        if (string.IsNullOrEmpty(token))
+        {
+            return false;
+        }
+
+        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await HttpClient.GetAsync("api/auth/IsAuthenticated");
         if (response.IsSuccessStatusCode)
         {
@@ -87,19 +108,19 @@
         }
         else
         {
-            // Обробка помилок
             return false;
         }
     }
-    private async Task<UserInfoDTO> GetUserInfo()
+
+    private async Task<UserChangeInfoDTO> GetUserInfo()
     {
-        var response = await HttpClient.GetAsync("api/user/currentUser");
+        var response = await HttpClient.GetAsync("api/user/info");
         if (response.IsSuccessStatusCode)
         {
             var content = await response.Content.ReadAsStringAsync();
-            var user = JsonConvert.DeserializeObject<UserInfoDTO>(content);
+            var user = JsonConvert.DeserializeObject<UserChangeInfoDTO>(content);
 
-            return user != null ? user : baseUser;
+            return user ?? baseUser;
         }
         else
         {
@@ -107,16 +128,39 @@
         }
     }
 
-    private UserInfoDTO baseUser = new UserInfoDTO
+    private UserChangeInfoDTO baseUser = new UserChangeInfoDTO
         {
-            UserId = "unknowed",
-            Firstname = "Unknow",
-            Lastname = " ",
+            Email = "unknown@test.com",
+            Firstname = "Unknown",
+            Lastname = "Test",
             BirthDate = DateTime.UtcNow,
-    };
-    void SidebarToggleClick()
+        };
+
+    private void SidebarToggleClick()
     {
         sidebarExpanded = !sidebarExpanded;
+    }
 
+    private async Task Logout()
+    {
+        await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "authToken");
+        await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "refreshToken");
+
+        HttpClient.DefaultRequestHeaders.Authorization = null;
+
+        isAuthenticated = false;
+
+        NotificationService.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Success,
+                Summary = "Logout Successful",
+                Detail = "You have logged out of your account."
+            });
+
+        NavigationManager.NavigateTo("/");
+    }
+    private void NavigateToHome()
+    {
+        NavigationManager.NavigateTo("/");
     }
 }

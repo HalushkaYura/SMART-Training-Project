@@ -1,0 +1,33 @@
+﻿@* @page "/projects"
+
+<RadzenContent Container="main">
+    <RadzenHeading Size="H2" Text="Projects" />
+
+    <RadzenButton Text="New Project" Icon="add_circle_outline" Click="@OpenNewProjectDialog" />
+
+    <RadzenDataGrid @ref="projectsGrid" Data="@projects" AllowPaging="true" PageSize="10" AllowSorting="true">
+        <Columns>
+            <RadzenDataGridColumn TItem="Project" Property="Name" Title="Name" />
+            <RadzenDataGridColumn TItem="Project" Property="Description" Title="Description" />
+            <RadzenDataGridColumn TItem="Project" Property="CreatedAt" Title="Created At" />
+            <RadzenDataGridColumn TItem="Project" Context="project" Bubble="false">
+                <Template>
+                    <RadzenButton Icon="launch" Text="Open" Click="@(() => NavigateToProjectPage(project))" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</RadzenContent>
+
+<RadzenDialog @bind-Value="@newProjectDialogOpen" Width="600px">
+    <RadzenStack Gap="1rem">
+        <RadzenHeading Size="H3" Text="New Project" />
+        <RadzenTextBox @bind-Value="@newProjectName" Label="Name" />
+        <RadzenTextArea @bind-Value="@newProjectDescription" Label="Description" />
+        <RadzenButton Text="Create" Click="@CreateNewProject" />
+    </RadzenStack>
+</RadzenDialog>
+@code {
+
+}
+ *@
