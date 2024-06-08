@@ -1,4 +1,4 @@
-﻿namespace Smart.Core.Helpers.Enums
+﻿namespace Smart.Shared.Helpers.Enums
 {
     public enum WorkItemPriority
     {

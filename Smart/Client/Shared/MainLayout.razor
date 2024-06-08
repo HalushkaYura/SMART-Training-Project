@@ -13,11 +13,11 @@
 
 <RadzenComponents />
 
-<RadzenLayout style="grid-template-areas: 'rz-sidebar rz-header' 'rz-sidebar rz-body';">
+<RadzenLayout class = "background-image">
     @if (isLoading)
     {
         <RadzenBody>
-            <div class="rz-mx-auto rz-p-4">Loading...</div>
+           <LoadingPage />
         </RadzenBody>
     }
     else

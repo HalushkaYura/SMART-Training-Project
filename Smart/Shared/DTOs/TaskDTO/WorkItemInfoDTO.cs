@@ -1,9 +1,13 @@
-﻿using Smart.Core.Interfaces;
-using Smart.Shared.Helpers.Enums;
+﻿using Smart.Shared.Helpers.Enums;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Smart.Core.Entities
+namespace Smart.Shared.DTOs.TaskDTO
 {
-    public class WorkItem : IBaseEntity
+    public class WorkItemInfoDTO
     {
         public int WorkItemId { get; set; } // Ідентифікатор робочого елементу
         public int ProjectId { get; set; } // Ідентифікатор проекту, до якого належить робочий елемент
@@ -16,16 +20,5 @@ namespace Smart.Core.Entities
         public DateTime EndDate { get; set; } // Дата завершення робочого елементу
         public string AssignedUserId { get; set; } // Ідентифікатор користувача, якому призначено робочий елемент
         public string CreatedByUserId { get; set; } // Ідентифікатор користувача, який створив робочий елемент
-
-        public Project Project { get; set; } // Проект, до якого належить робочий елемент
-        public WorkItem ParentTask { get; set; } // Батьківська задача (якщо є)
-        public User AssignedUser { get; set; } // Користувач, якому призначено робочий елемент
-        public User CreatedByUser { get; set; } // Користувач, який створив робочий елемент
-
-        public ICollection<WorkItem> SubTasks { get; set; } // Список підзадач робочого елементу
-
-        public ICollection<Comment> Comments { get; set; } // Список коментарів до робочого елементу
-
-        public ICollection<Attachment> Attachments { get; set; } // Список вкладень, пов'язаних з робочим елементом
     }
 }

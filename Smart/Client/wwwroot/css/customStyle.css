@@ -1,0 +1,21 @@
+﻿.background-image {
+    background-image: url('/foto/fone/fone5.jpg');
+    background-size: cover;
+    grid-template-areas: 'rz-sidebar rz-header' 'rz-sidebar rz-body';
+}
+
+
+.loading-panel {
+    animation: rotate 0.5s linear infinite;
+}
+
+
+@keyframes rotate {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

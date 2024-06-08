@@ -1,33 +1,150 @@
-﻿@* @page "/projects"
+﻿@page "/projects"
+@using Smart.Shared.DTOs.ProjectDTO
+@using System.Net.Http.Headers
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@inject DialogService DialogService
 
 <RadzenContent Container="main">
     <RadzenHeading Size="H2" Text="Projects" />
 
     <RadzenButton Text="New Project" Icon="add_circle_outline" Click="@OpenNewProjectDialog" />
 
-    <RadzenDataGrid @ref="projectsGrid" Data="@projects" AllowPaging="true" PageSize="10" AllowSorting="true">
-        <Columns>
-            <RadzenDataGridColumn TItem="Project" Property="Name" Title="Name" />
-            <RadzenDataGridColumn TItem="Project" Property="Description" Title="Description" />
-            <RadzenDataGridColumn TItem="Project" Property="CreatedAt" Title="Created At" />
-            <RadzenDataGridColumn TItem="Project" Context="project" Bubble="false">
-                <Template>
-                    <RadzenButton Icon="launch" Text="Open" Click="@(() => NavigateToProjectPage(project))" />
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
-    </RadzenDataGrid>
+    <RadzenTabs>
+        <Tabs>
+            <RadzenPanelMenu Text="Owned Projects">
+                @if (ownedProjects != null)
+                {
+                    <RadzenDataGrid @ref="ownedProjectsGrid" Data="@ownedProjects" AllowPaging="true" PageSize="10" AllowSorting="true">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="ProjectForUserDTO" Property="Name" Title="Name" />
+                            <RadzenDataGridColumn TItem="ProjectForUserDTO" Context="project">
+                                <Template>
+                                    <RadzenButton Icon="launch" Text="Open" Click="@(() => NavigateToProjectPage(project.ProjectId))" />
+                                </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                }
+                else
+                {
+                    <p>Loading owned projects...</p>
+                }
+            </RadzenPanelMenu>
+            <RadzenPanelMenu Text="Member Projects">
+                @if (memberProjects != null)
+                {
+                    <RadzenDataGrid @ref="memberProjectsGrid" Data="@memberProjects" AllowPaging="true" PageSize="10" AllowSorting="true">
+                        <Columns>
+                            <RadzenDataGridColumn TItem="ProjectForUserDTO" Property="Name" Title="Name" />
+                            <RadzenDataGridColumn TItem="ProjectForUserDTO" Context="project">
+                                <Template>
+                                    <RadzenButton Icon="launch" Text="Open" Click="@(() => NavigateToProjectPage(project.ProjectId))" />
+                                </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+                }
+                else
+                {
+                    <p>Loading member projects...</p>
+                }
+            </RadzenPanelMenu>
+        </Tabs>
+    </RadzenTabs>
 </RadzenContent>
 
-<RadzenDialog @bind-Value="@newProjectDialogOpen" Width="600px">
-    <RadzenStack Gap="1rem">
-        <RadzenHeading Size="H3" Text="New Project" />
-        <RadzenTextBox @bind-Value="@newProjectName" Label="Name" />
-        <RadzenTextArea @bind-Value="@newProjectDescription" Label="Description" />
-        <RadzenButton Text="Create" Click="@CreateNewProject" />
-    </RadzenStack>
-</RadzenDialog>
-@code {
+<div class="dialog-overlay" style="display: @(newProjectDialogOpen ? "block" : "none")">
+    <div class="dialog-content">
+        <div style="width: 600px;">
+            <RadzenStack Gap="1rem">
+                <RadzenHeading Size="H3" Text="New Project" />
+                <RadzenTextBox @bind-Value="@newProjectName" Label="Name" />
+                <RadzenTextArea @bind-Value="@newProjectDescription" Label="Description" />
+                <RadzenButton Text="Create" Click="@CreateNewProject" />
+            </RadzenStack>
+        </div>
+    </div>
+</div>
 
+
+@code {
+    private bool newProjectDialogOpen = false;
+    private string newProjectName = string.Empty;
+    private string newProjectDescription = string.Empty;
+    private RadzenDataGrid<ProjectForUserDTO> ownedProjectsGrid;
+    private RadzenDataGrid<ProjectForUserDTO> memberProjectsGrid;
+    private List<ProjectForUserDTO> ownedProjects;
+    private List<ProjectForUserDTO> memberProjects;
+    private ProjectCreateDTO projectCreate = new ProjectCreateDTO();
+
+    private void OpenNewProjectDialog()
+    {
+        newProjectDialogOpen = true;
+    }
+
+    private async Task CreateNewProject()
+    {
+        if (string.IsNullOrWhiteSpace(newProjectName) || string.IsNullOrWhiteSpace(newProjectDescription))
+        {
+            // Handle validation error
+            return;
+        }
+
+        projectCreate.Name = newProjectName;
+        projectCreate.Description = newProjectDescription;
+
+        try
+        {
+            var response = await HttpClient.PostAsJsonAsync($"api/project/create", projectCreate);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var projectId = await response.Content.ReadFromJsonAsync<int>();
+
+                if (projectId != default)
+                {
+                    ownedProjects.Add(new ProjectForUserDTO
+                        {
+                            ProjectId = projectId,
+                            Name = newProjectName
+                        });
+
+                    await ownedProjectsGrid.Reload();
+
+                    newProjectDialogOpen = false;
+                    newProjectName = string.Empty;
+                    newProjectDescription = string.Empty;
+                }
+            }
+            else
+            {
+                // Handle error
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle exception (log it, show message to user, etc.)
+        }
+    }
+
+    private void NavigateToProjectPage(int projectId)
+    {
+        NavigationManager.NavigateTo($"/project/{projectId}");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            ownedProjects = await HttpClient.GetFromJsonAsync<List<ProjectForUserDTO>>("api/project/owner");
+            memberProjects = await HttpClient.GetFromJsonAsync<List<ProjectForUserDTO>>("api/project/member");
+        }
+        catch (Exception ex)
+        {
+            // Handle exception (log it, show message to user, etc.)
+            ownedProjects = new List<ProjectForUserDTO>();
+            memberProjects = new List<ProjectForUserDTO>();
+        }
+    }
 }
- *@

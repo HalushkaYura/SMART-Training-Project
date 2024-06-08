@@ -1,73 +1,88 @@
-﻿@* @page "/task/{TaskId}"
-
+﻿@page "/task/{WorkItemId}"
+@using System.Net.Http.Headers
+@using Smart.Shared.DTOs.TaskDTO
+@using Smart.Shared.Helpers.Enums
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
 <RadzenContent Container="main">
-    <RadzenHeading Size="H2" Text="@task.Name" />
-    <RadzenText TextStyle="TextStyle.Subtitle1">@task.Description</RadzenText>
-    <RadzenText TextStyle="TextStyle.Body1">Due Date: @task.DueDate.ToString("d")</RadzenText>
-    <RadzenText TextStyle="TextStyle.Body1">Priority: @GetPriorityName(task.Priority)</RadzenText>
-    <RadzenText TextStyle="TextStyle.Body1">Assigned To: @string.Join(", ", task.AssignedTo.Select(x => x.FullName))</RadzenText>
+    <RadzenHeading Size="H2" Text="@workItem.Name" />
+    <RadzenText TextStyle="TextStyle.Subtitle1">@workItem.Description</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body1">Start Date: @workItem.StartDate.ToString("d")</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body1">End Date: @workItem.EndDate.ToString("d")</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body1">Priority: @workItem.Priority</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body1">Assigned To: @assignedUserName</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body1">Created By: @createdByUserName</RadzenText>
 
-    <RadzenHeading Size="H4" Text="Comments" />
-    <RadzenTextArea @bind-Value="@newComment" Label="Add Comment" />
-    <RadzenButton Text="Submit" Click="@SubmitComment" />
+        <RadzenButton Text="Edit" Icon="edit" Click="@OpenEditDialog" />
+        <RadzenButton Text="Delete" Icon="delete" Click="@DeleteWorkItem" />
+    </RadzenContent>
 
-    <RadzenListBox Data="@comments" TextProperty="Comment" />
-</RadzenContent>
+    <RadzenDialog @bind-Value="@editDialogOpen" Width="600px">
+        <RadzenStack Gap="1rem">
+            <RadzenHeading Size="H3" Text="Edit Task" />
+            <RadzenTextBox @bind-Value="@editTaskName" Label="Name" />
+            <RadzenTextArea @bind-Value="@editTaskDescription" Label="Description" />
+            <RadzenDatePicker @bind-Value="@editTaskStartDate" Label="Start Date" />
+            <RadzenDatePicker @bind-Value="@editTaskEndDate" Label="End Date" />
+            <RadzenDropDown @bind-Value="@editTaskPriority" Data="@priorities" TextProperty="Name" ValueProperty="Value" Label="Priority" />
+            <RadzenButton Text="Save" Click="@SaveEditedTask" />
+        </RadzenStack>
+    </RadzenDialog>
 
-@code {
+    @code {
     [Parameter]
-    public string TaskId { get; set; }
+    public int WorkItemId { get; set; }
 
-    private Task task = new Task();
-    private List<Comment> comments = new List<Comment>();
-    private string newComment = string.Empty;
+    private WorkItemInfoDTO workItem = new WorkItemInfoDTO();
+    private string assignedUserName = string.Empty;
+    private string createdByUserName = string.Empty;
+
+    private bool editDialogOpen = false;
+    private string editTaskName = string.Empty;
+    private string editTaskDescription = string.Empty;
+    private DateTime? editTaskStartDate = null;
+    private DateTime? editTaskEndDate = null;
+    private WorkItemPriority editTaskPriority = WorkItemPriority.Low;
+    private List<WorkItemPriority> priorities = Enum.GetValues(typeof(WorkItemPriority)).Cast<WorkItemPriority>().ToList();
 
     protected override async Task OnInitializedAsync()
     {
-        task = await GetTaskData(TaskId);
-        comments = await GetTaskComments(TaskId);
+        workItem = await HttpClient.GetFromJsonAsync<WorkItemInfoDTO>($"api/workitem/{WorkItemId}");
+        assignedUserName = await HttpClient.GetStringAsync($"api/user/{workItem.AssignedUserId}");
+        createdByUserName = await HttpClient.GetStringAsync($"api/user/{workItem.CreatedByUserId}");
+
+        editTaskName = workItem.Name;
+        editTaskDescription = workItem.Description;
+        editTaskStartDate = workItem.StartDate;
+        editTaskEndDate = workItem.EndDate;
+        editTaskPriority = workItem.Priority;
     }
 
-    private async Task<Task> GetTaskData(string taskId)
+    private void OpenEditDialog()
     {
-        // Implement logic to fetch task data
-        return new Task
-        {
-            Id = taskId,
-            Name = "Sample Task",
-            Description = "This is a sample task description.",
-            DueDate = DateTime.Now.AddDays(7),
-            Priority = 2,
-            AssignedTo = new List<ProjectMember>
+        editDialogOpen = true;
+    }
+
+    private async Task SaveEditedTask()
+    {
+        var updatedWorkItemDto = new WorkItemInfoDTO
             {
-                new ProjectMember { FullName = "John Doe" },
-                new ProjectMember { FullName = "Jane Smith" }
-            }
-        };
+                WorkItemId = WorkItemId,
+                Name = editTaskName,
+                Description = editTaskDescription,
+                StartDate = editTaskStartDate ?? DateTime.Now,
+                EndDate = editTaskEndDate ?? DateTime.Now.AddDays(7),
+                Priority = editTaskPriority
+            };
+
+        await HttpClient.PutAsJsonAsync($"api/workitem", updatedWorkItemDto);
+        await OnInitializedAsync();
+        editDialogOpen = false;
     }
 
-    private async Task<List<Comment>> GetTaskComments(string taskId)
+    private async Task DeleteWorkItem()
     {
-        // Implement logic to fetch task comments
-        return new List<Comment>
-        {
-            new Comment { Comment = "This is a sample comment." },
-            new Comment { Comment = "Another sample comment." }
-        };
+        await HttpClient.DeleteAsync($"api/workitem/{WorkItemId}");
+        NavigationManager.NavigateTo($"/project/{workItem.ProjectId}");
     }
-
-    private string GetPriorityName(int priority)
-    {
-        return priorities.FirstOrDefault(p => p.Value == priority)?.Name ?? "Unknown";
-    }
-
-    private async Task SubmitComment()
-    {
-        if (!string.IsNullOrWhiteSpace(newComment))
-        {
-            // Implement logic to submit new comment
-            comments.Add(new Comment { Comment = newComment });
-            newComment = string.Empty;
-        }
-    }
-} *@
+}

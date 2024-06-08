@@ -1,102 +1,83 @@
-﻿@* @page "/project/{ProjectId}"
+﻿@page "/project/{ProjectId}"
+@using Smart.Shared.DTOs.ProjectDTO
+@using Smart.Shared.DTOs.TaskDTO
+@using System.Net.Http.Headers
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
 
 <RadzenContent Container="main">
     <RadzenHeading Size="H2" Text="@project.Name" />
-    <RadzenText TextStyle="TextStyle.Subtitle1">@project.Description</RadzenText>
+    @* <RadzenText TextStyle="TextStyle.Subtitle1">@project.Description</RadzenText> *@
 
-    <RadzenButton Text="New Task" Icon="add_circle_outline" Click="@OpenNewTaskDialog" />
+        <RadzenButton Text="New Task" Icon="add_circle_outline" Click="@OpenNewTaskDialog" />
 
-    <RadzenDataGrid @ref="tasksGrid" Data="@tasks" AllowPaging="true" PageSize="10" AllowSorting="true">
-        <Columns>
-            <RadzenDataGridColumn TItem="Task" Property="Name" Title="Name" />
-            <RadzenDataGridColumn TItem="Task" Property="Description" Title="Description" />
-            <RadzenDataGridColumn TItem="Task" Property="DueDate" Title="Due Date" />
-            <RadzenDataGridColumn TItem="Task" Property="Priority" Title="Priority" />
-            <RadzenDataGridColumn TItem="Task" Context="task" Bubble="false">
-                <Template>
-                    <RadzenButton Icon="launch" Text="View Details" Click="@(() => NavigateToTaskPage(task))" />
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
-    </RadzenDataGrid>
+        <RadzenDataGrid @ref="tasksGrid" Data="@tasks" AllowPaging="true" PageSize="10" AllowSorting="true">
+            <Columns>
+                <RadzenDataGridColumn TItem="WorkItemInfoDTO" Property="Name" Title="Name" />
+                <RadzenDataGridColumn TItem="WorkItemInfoDTO" Property="Description" Title="Description" />
+                <RadzenDataGridColumn TItem="WorkItemInfoDTO" Property="DueDate" Title="Due Date" />
+                <RadzenDataGridColumn TItem="WorkItemInfoDTO" Property="Priority" Title="Priority" />
+                <RadzenDataGridColumn TItem="WorkItemInfoDTO" Context="task" Bubble="false">
+                    <Template>
+                        <RadzenButton Icon="launch" Text="View Details" Click="@(() => NavigateToTaskPage(task.WorkItemId))" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
 
-    <RadzenIcon Icon="chat" Style="position: fixed; bottom: 20px; right: 20px;" Click="@OpenChatDialog" />
-</RadzenContent>
+        <RadzenIcon Icon="chat" Style="position: fixed; bottom: 20px; right: 20px;" Click="@OpenChatDialog" />
+    </RadzenContent>
 
-<RadzenDialog @bind-Value="@newTaskDialogOpen" Width="600px">
-    <RadzenStack Gap="1rem">
-        <RadzenHeading Size="H3" Text="New Task" />
-        <RadzenTextBox @bind-Value="@newTaskName" Label="Name" />
-        <RadzenTextArea @bind-Value="@newTaskDescription" Label="Description" />
-        <RadzenDatePicker @bind-Value="@newTaskDueDate" Label="Due Date" />
-        <RadzenDropDown @bind-Value="@newTaskPriority" Data="@priorities" TextProperty="Name" ValueProperty="Value" Label="Priority" />
-        <RadzenDropDownDataGrid @ref="assigneeGrid" Data="@projectMembers" TextProperty="FullName" ValueProperty="Id" AllowClear="true" AllowFiltering="true" AllowVirtualization="true" ShowSearch="true" Placeholder="Select assignees..." Style="height: 300px" />
-        <RadzenButton Text="Create" Click="@CreateNewTask" />
-    </RadzenStack>
-</RadzenDialog>
+    <RadzenDialog @bind-Value="@newTaskDialogOpen" Width="600px">
+        <!-- Task creation form -->
+    </RadzenDialog>
 
-<RadzenDialog @bind-Value="@chatDialogOpen" Width="600px">
-    <RadzenStack Gap="1rem">
-        <RadzenHeading Size="H3" Text="Project Chat" />
-        <RadzenTextArea @bind-Value="@newChatMessage" Label="Message" />
-        <RadzenButton Text="Send" Click="@SendChatMessage" />
-        <RadzenListBox Data="@chatMessages" TextProperty="Message" />
-    </RadzenStack>
-</RadzenDialog>
+    <RadzenDialog @bind-Value="@chatDialogOpen" Width="600px">
+        <!-- Project chat -->
+    </RadzenDialog>
 
-<RadzenDialog @bind-Value="@inviteDialogOpen" Width="600px">
-    <RadzenStack Gap="1rem">
-        <RadzenHeading Size="H3" Text="Invite User" />
-        <RadzenTextBox @bind-Value="@inviteEmail" Label="Email" />
-        <RadzenButton Text="Send Invitation" Click="@SendInvitation" />
-    </RadzenStack>
-</RadzenDialog>
-@code {
+    <RadzenDialog @bind-Value="@inviteDialogOpen" Width="600px">
+        <!-- Invite user form -->
+    </RadzenDialog>
+
+    @code {
     [Parameter]
-    public string ProjectId { get; set; }
+    public int ProjectId { get; set; }
 
-    private Project project = new Project();
-    private List<Task> tasks = new List<Task>();
-    private RadzenDataGrid<Task> tasksGrid;
+    private ProjectInfoDTO project = new ProjectInfoDTO();
+    private List<WorkItemInfoDTO> tasks = new List<WorkItemInfoDTO>();
+    private RadzenDataGrid<WorkItemInfoDTO> tasksGrid;
 
     private bool newTaskDialogOpen = false;
-    private string newTaskName = string.Empty;
-    private string newTaskDescription = string.Empty;
-    private DateTime? newTaskDueDate = null;
-    private int newTaskPriority = 1;
-    private List<ProjectMember> projectMembers = new List<ProjectMember>();
-    private RadzenDropDownDataGrid<ProjectMember> assigneeGrid;
-    private List<Priority> priorities = new List<Priority>
-    {
-        new Priority { Value = 1, Name = "Low" },
-        new Priority { Value = 2, Name = "Medium" },
-        new Priority { Value = 3, Name = "High" }
-    };
-
     private bool chatDialogOpen = false;
-    private string newChatMessage = string.Empty;
-    private List<ChatMessage> chatMessages = new List<ChatMessage>();
-
     private bool inviteDialogOpen = false;
-    private string inviteEmail = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        // Fetch project data
-        project = await GetProjectData(ProjectId);
-        tasks = await GetProjectTasks(ProjectId);
-        projectMembers = await GetProjectMembers(ProjectId);
+        // Отримати деталі проекту від контролера
+        project = await HttpClient.GetFromJsonAsync<ProjectInfoDTO>($"api/project/details/{ProjectId}");
+
+        // Отримати список завдань для проекту від контролера
+        // tasks = await HttpClient.GetFromJsonAsync<List<ProjectInfoDTO>>($"api/workitem/project/{ProjectId}");
     }
 
-    private async Task<Project> GetProjectData(string projectId)
+    private void NavigateToTaskPage(int workItemId)
     {
-        // Implement logic to fetch project data
-        return new Project
-            {
-                Id = projectId,
-                Name = "Sample Project",
-                Description = "This is a sample project description."
-            };
+        NavigationManager.NavigateTo($"/task/{workItemId}");
+    }
+
+    private void OpenNewTaskDialog()
+    {
+        newTaskDialogOpen = true;
+    }
+
+    private void OpenChatDialog()
+    {
+        chatDialogOpen = true;
+    }
+
+    private void OpenInviteDialog()
+    {
+        inviteDialogOpen = true;
     }
 }
- *@
