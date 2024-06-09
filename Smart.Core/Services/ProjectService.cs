@@ -40,25 +40,38 @@ namespace Smart.Core.Services
 
         public async Task<ProjectIdDTO> CreateNewProjectAsync(ProjectCreateDTO projectDTO, string userId)
         {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-                throw new HttpException(System.Net.HttpStatusCode.BadRequest, ErrorMessages.UserNotFound);
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                    throw new HttpException(System.Net.HttpStatusCode.BadRequest, ErrorMessages.UserNotFound);
 
-            var existingProjects = await _projectRepository.GetListAsync(
-                p => p.Name == projectDTO.Name && p.UserProjects.Any(up => up.UserId == userId));
+                var existingProjects = await _projectRepository.GetListAsync(
+                    p => p.Name == projectDTO.Name && p.UserProjects.Any(up => up.UserId == userId));
 
-            if (existingProjects.Any())
-                throw new HttpException(System.Net.HttpStatusCode.BadRequest, "Project with the same name already exists for this user.");
+                if (existingProjects.Any())
+                    throw new HttpException(System.Net.HttpStatusCode.BadRequest, "Project with the same name already exists for this user.");
 
-            var project = _mapper.Map<Project>(projectDTO);
+                var project = new Project
+                {
+                    Name = projectDTO.Name,
+                    Description = projectDTO.Description,
+                    StartDate = DateTime.Now, 
+                    CreatedByUserId = userId 
+                };
 
+                await _projectRepository.AddAsync(project);
+                await _projectRepository.SaveChangesAsync();
+                await CreateUserProject(userId, project.ProjectId, true);
 
-            await _projectRepository.AddAsync(project);
-            await _projectRepository.SaveChangesAsync();
-
-            return new ProjectIdDTO { ProjectId = project.ProjectId };
+                return new ProjectIdDTO { ProjectId = project.ProjectId };
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
         }
-        
+
         public async Task AddMemberToProjectAsync(string userId, int projectId)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -139,6 +152,7 @@ namespace Smart.Core.Services
             var projects = await _projectRepository.GetListAsync(p => projectIds.Contains(p.ProjectId));
 
             var projectDtos = _mapper.Map<IEnumerable<ProjectForUserDTO>>(projects);
+            
 
             return projectDtos;
         }

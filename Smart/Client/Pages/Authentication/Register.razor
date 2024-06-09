@@ -9,34 +9,34 @@
     <div class="row">
         <div class="col-md-6 offset-md-3 col-lg-4 offset-lg-4">
             <section>
-                <h2 class="text-center">Register a new account.</h2>
+                <h2 class="text-center text-login">Register a new account.</h2>
                 <hr />
-                <div class="form-group">
-                    <label>First Name</label>
-                    <RadzenTextBox @bind-Value="userRegistration.Firstname" Placeholder="First Name" class="form-control" />
+                <div class="form-group m-2">
+                    <label class="text-login">First Name</label>
+                    <RadzenTextBox @bind-Value="userRegistration.Firstname" Placeholder="First Name" class="form-control" Name="Firstname" />
                 </div>
-                <div class="form-group">
-                    <label>Last Name</label>
-                    <RadzenTextBox @bind-Value="userRegistration.Lastname" Placeholder="Last Name" class="form-control" />
+                <div class="form-group m-2">
+                    <label class="text-login">Last Name</label>
+                    <RadzenTextBox @bind-Value="userRegistration.Lastname" Placeholder="Last Name" class="form-control" Name="Lastname" />
                 </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <RadzenTextBox @bind-Value="userRegistration.Email" Placeholder="name@example.com" class="form-control" />
+                <div class="form-group m-2">
+                    <label class="text-login">Email</label>
+                    <RadzenTextBox @bind-Value="userRegistration.Email" Placeholder="name@example.com" class="form-control" Name="Email" />
                 </div>
 
-                <div class="form-group">
-                    <label>Password</label>
-                    <RadzenPassword @bind-Value="userRegistration.Password" Placeholder="Password" class="form-control" />
+                <div class="form-group m-2">
+                    <label class="text-login">Password</label>
+                    <RadzenPassword @bind-Value="userRegistration.Password" Placeholder="Password" class="form-control" Name="Password" />
                 </div>
                 <div class="form-group">
-                    <label>Birth Date</label>
-                    <RadzenDatePicker @bind-Value="userRegistration.BirthDay" Placeholder="Birth Date" class="form-control" />
+                    <label class="text-login">Birth Date</label>
+                    <RadzenDatePicker @bind-Value="userRegistration.BirthDay" Placeholder="Birth Date" class="form-control" Name="BirthDate"/>
                 </div>
-                <div class="text-center">
+                <div class="text-center m-2">
                     <RadzenButton Text="Register" ButtonType="ButtonType.Submit" Icon="person_add" class="btn btn-primary btn-block m-2" />
                 </div>
                 <div class="text-center mt-3">
-                    <RadzenLink Text="Already have an account? Log in" Path="/login" />
+                    <RadzenLink  Style="color:azure" Text="Already have an account? Log in" Path="/login" />
                 </div>
             </section>
         </div>

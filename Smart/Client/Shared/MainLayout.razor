@@ -1,6 +1,8 @@
 ﻿@inherits LayoutComponentBase
 @using Newtonsoft.Json
 @using Radzen
+@using Smart.Client.Pages.Project
+@using Smart.Shared.DTOs.ProjectDTO
 @using Smart.Shared.DTOs.UserDTO
 @using System.Net.Http.Headers
 @inject NavigationManager NavigationManager
@@ -13,45 +15,46 @@
 
 <RadzenComponents />
 
-<RadzenLayout class = "background-image">
+<RadzenLayout class="background-image">
     @if (isLoading)
     {
         <RadzenBody>
-           <LoadingPage />
+            <LoadingPage />
         </RadzenBody>
     }
     else
     {
-        <RadzenHeader Style="background-color:white; color:black">
-            <RadzenRow JustifyContent="JustifyContent.Start" AlignItems="AlignItems.Center" Gap="0">
-                <RadzenColumn Size="5">
-                    <div class="d-flex justify-content-start align-items-start">
-                        <RadzenSidebarToggle Click="@(async (args) => SidebarToggleClick())" Style="color:black"></RadzenSidebarToggle>
-                        @if (isAuthenticated )
-                        {
-                            <RadzenText Style="font-size: large; margin-top: 10px; color: black;">
-                                Hello @userInfo.Firstname @userInfo.Lastname !
-                            </RadzenText>
-                        }
-                    </div>
-                </RadzenColumn>
+        <RadzenHeader Style="background-color:silver; color:black">
+            <RadzenRow JustifyContent="JustifyContent.End" AlignItems="AlignItems.End" Gap="0">
                 <RadzenColumn Size="7">
                     <div class="d-flex justify-content-end align-items-center">
-                        @if (!isAuthenticated || userInfo == null)
-                        {
-                            <RadzenButton Text="Login" Icon="login" Style="color:whitesmoke; margin-right: 10px; background-color: dimgrey" Click="@(args => NavigationManager.NavigateTo("/Login"))" />
-                            <RadzenButton Text="Register" Icon="person_add" Style="color:whitesmoke; margin-right: 10px; background-color: dimgrey" Click="@(args => NavigationManager.NavigateTo("/Register"))" />
+                        @if (isAuthenticated && userInfo != null)
+                        {   
+                            <RadzenText Style="font-size: large; margin-right: 10px; color: black;">
+                                Hello @userInfo.Firstname @userInfo.Lastname!
+                            </RadzenText>
+                            <div class="avatar-container">
+                                <RadzenImage Click="@(args => AvatarClick(args))" Path="/avatars/avatar.png" Style="cursor: pointer; width: 38px; height: 38px; margin: 10px; padding: 2px;" />
+                                @if (menuVisible)
+                                {
+                                    <div class="custom-menu">
+                                        <a class="custom-menu-item" href="/userInfo">Personal Info</a>
+                                        <a class="custom-menu-item" href="#" @onclick="Logout">Logout</a>
+                                    </div>
+                                }
+                            </div>
                         }
                         else
                         {
-                            <RadzenButton Text="Logout" Icon="logout" Style="color:whitesmoke; margin-right: 10px; background-color: dimgrey" Click="@Logout" />
+                            <RadzenButton Text="Login" Icon="login" Style="color:silver; margin-right: 10px; margin-top: 5px; background-color: dimgrey" Click="@(args => NavigationManager.NavigateTo("/Login"))" />
+                            <RadzenButton Text="Register" Icon="person_add" Style="color:silver; margin-right: 10px; margin-top: 5px; background-color: dimgrey" Click="@(args => NavigationManager.NavigateTo("/Register"))" />
                         }
                     </div>
                 </RadzenColumn>
             </RadzenRow>
         </RadzenHeader>
 
-        <RadzenBody Expanded="@sidebarExpanded">
+        <RadzenBody>
             <RadzenRow class="rz-mx-auto rz-px-4 rz-pt-2 rz-pt-md-4 rz-pt-lg-6 rz-pt-xl-12 rz-pb-2 rz-pb-lg-12" Style="max-width: 1440px;">
                 <RadzenColumn Size="12">
                     @Body
@@ -59,38 +62,70 @@
             </RadzenRow>
         </RadzenBody>
 
-        <RadzenSidebar Responsive="false" Style="width: max-content; border:none; background : #292731">
-            <RadzenStack AlignItems="Radzen.AlignItems.Center" class="rz-py-4 rz-py-lg-6" @onclick="NavigateToHome">
-                <RadzenRow AlignItems="Radzen.AlignItems.Center" JustifyContent="Radzen.JustifyContent.Start">
-                    <RadzenImage Path="/logo.png" Style="width: 38px; height: 38px; margin-left: 10px; margin-right: 5px;"></RadzenImage>
-                    <RadzenText Text="SMART" TextStyle="Radzen.Blazor.TextStyle.Subtitle2" Style="@(sidebarExpanded ? "color: white; margin-bottom: 0px; padding-right: 10px; font-size: 20px;" : "display: none;")"></RadzenText>
-                </RadzenRow>
-            </RadzenStack>
+        @if (isAuthenticated && userInfo != null)
+        {
+            <RadzenSidebar Responsive="false" Style="width: max-content; border:none; background: #292731">
+                <RadzenStack AlignItems="Radzen.AlignItems.Center" class="rz-py-4 rz-py-lg-6" @onclick="NavigateToHome">
+                    <RadzenRow AlignItems="Radzen.AlignItems.Center" JustifyContent="Radzen.JustifyContent.Start">
+                        <RadzenImage Path="/logo.png" Style="width: 38px; height: 38px; margin-left: 10px; margin-right: 5px;"></RadzenImage>
+                        <RadzenText Text="SMART" TextStyle="Radzen.Blazor.TextStyle.Subtitle2" Style=" color: white; margin-bottom: 0px; padding-right: 10px; font-size: 20px;"></RadzenText>
+                    </RadzenRow>
+                </RadzenStack>
 
-            <RadzenPanelMenu DisplayStyle="@(sidebarExpanded ? MenuItemDisplayStyle.IconAndText : MenuItemDisplayStyle.Icon)" ShowArrow="true" Style="background-color: #292731; border:none">
-            </RadzenPanelMenu>
+                <RadzenPanelMenu DisplayStyle="MenuItemDisplayStyle.IconAndText" ShowArrow="true" Style="background-color: #292731; border:none">
+                    <RadzenPanelMenuItem class="panel-menu-hover-effect"  Text="All project" Icon="work_outline" Style="color:silver" Click="@(() => NavigationManager.NavigateTo("/projects"))"> </RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem class="panel-menu-hover-effect" Text="You assignments" Icon="assignment" Style="color:silver" Click="@(() => NavigationManager.NavigateTo("/projects"))"> </RadzenPanelMenuItem>
+                    <RadzenText Style="font-size:medium ; padding-left:10px; color: silver; margin-top:20px">Work plase</RadzenText>
+                    @*додаткові поля ще не придумав*@
+                    <RadzenRow AlignItems="Radzen.AlignItems.Center" JustifyContent="Radzen.JustifyContent.SpaceBetween" Style="display: flex; width: 100%;">
+                        <RadzenText Text="Your project" Style="color:silver; padding-left:10px;"></RadzenText>
+                        <RadzenIcon class="icon-hover-effect" Style="color: silver; margin-bottom: 5px; font-size: 20px;" Icon="add" onclick="@AddButtonClick"></RadzenIcon>
+                    </RadzenRow>
+
+                    @if (ownedProjects != null)
+                    {
+                        @foreach (var project in ownedProjects)
+                        {
+                            <RadzenPanelMenuItem class="panel-menu-hover-effect" Style="color:silver" Text="@project.Name" Icon="dashboard" Click="@(() => NavigateToProjectPage(project.ProjectId))" />
+                        }
+
+                    }
+                    else
+                    {
+                        <RadzenPanelMenuItem Text="Loading..." />
+                    }
+                </RadzenPanelMenu>
         </RadzenSidebar>
+        }
     }
 </RadzenLayout>
 
 @code {
     private bool sidebarExpanded = true;
     private bool isLoading = true;
+    private bool menuVisible = false;
     [Parameter]
     public bool isAuthenticated { get; set; }
     private UserChangeInfoDTO userInfo;
-
+    private List<ProjectForUserDTO> ownedProjects;
     protected override async Task OnInitializedAsync()
     {
         isAuthenticated = await GetAuthenticationStatus();
+        menuVisible = false;
         if (isAuthenticated)
         {
             userInfo = await GetUserInfo();
+            ownedProjects = await GetOwnedProjects();
         }
         isLoading = false;
         StateHasChanged();
     }
 
+    protected async Task AddButtonClick(MouseEventArgs args)
+    {
+        await DialogService.OpenAsync<ProjectAdd>("Add Project", null);
+        await OnInitializedAsync();
+    }
     private async Task<bool> GetAuthenticationStatus()
     {
         var token = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "authToken");
@@ -129,17 +164,13 @@
     }
 
     private UserChangeInfoDTO baseUser = new UserChangeInfoDTO
-        {
-            Email = "unknown@test.com",
-            Firstname = "Unknown",
-            Lastname = "Test",
-            BirthDate = DateTime.UtcNow,
-        };
-
-    private void SidebarToggleClick()
     {
-        sidebarExpanded = !sidebarExpanded;
-    }
+        Email = "unknown@test.com",
+        Firstname = "Unknown",
+        Lastname = "Test",
+        BirthDate = DateTime.UtcNow,
+    };
+
 
     private async Task Logout()
     {
@@ -151,16 +182,58 @@
         isAuthenticated = false;
 
         NotificationService.Notify(new NotificationMessage
-            {
-                Severity = NotificationSeverity.Success,
-                Summary = "Logout Successful",
-                Detail = "You have logged out of your account."
-            });
+        {
+            Severity = NotificationSeverity.Success,
+            Summary = "Logout Successful",
+            Detail = "You have logged out of your account."
+        });
 
         NavigationManager.NavigateTo("/");
     }
+
     private void NavigateToHome()
     {
         NavigationManager.NavigateTo("/");
+    }
+
+    private void AvatarClick(MouseEventArgs args)
+    {
+        menuVisible = !menuVisible;
+    }
+
+    private void OnMenuItemClick(MenuItemEventArgs args)
+    {
+        menuVisible = false;
+        if (args.Text == "Personal Info")
+        {
+            menuVisible = false;
+            NavigationManager.NavigateTo("/userInfo");
+
+        }
+        else if (args.Text == "Logout")
+        {
+            Logout();
+        }
+    }
+
+    private async Task<List<ProjectForUserDTO>> GetOwnedProjects()
+    {
+        var response = await HttpClient.GetAsync("api/project/owner");
+        if (response.IsSuccessStatusCode)
+        {
+            var content = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<List<ProjectForUserDTO>>(content);
+        }
+        else
+        {
+            return new List<ProjectForUserDTO>();
+        }
+    }
+
+    private void NavigateToProjectPage(int projectId)
+    {
+        NavigationManager.NavigateTo($"/project/{projectId}");
+        menuVisible = false;
+
     }
 }

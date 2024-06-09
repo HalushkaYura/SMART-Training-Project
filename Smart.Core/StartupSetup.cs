@@ -20,7 +20,9 @@ namespace Smart.Core
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IConfirmEmailService, ConfirmEmailService>();
             services.AddScoped<ITemplateService, TemplateService>();
-            services.AddScoped<IAuthenticationService, AuthenticationService>();
+
+            services.AddScoped<IProjectService, ProjectService>();
+            services.AddScoped<IWorkItemService, WorkItemService>();
             //services.AddScoped<IFileService, FileService>();
             //services.AddScoped<ILocaleStorageService, LocaleStorageService>();
             //services.AddScoped<INotificationService, NotificationService>();

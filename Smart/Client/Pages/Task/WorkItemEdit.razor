@@ -1,0 +1,133 @@
+﻿@using Smart.Shared.Helpers.Enums
+@using Smart.Shared.DTOs.TaskDTO
+@using Smart.Shared.DTOs.ProjectDTO
+
+@inject NotificationService notificationService
+@inject HttpClient HttpClient
+@inject IJSRuntime JSRuntime
+@inject DialogService dialogService
+
+<PageTitle>Edit Work Item</PageTitle>
+
+<RadzenColumn SizeMD=12>
+    <RadzenAlert Shade="Shade.Lighter" Variant="Variant.Flat" Size="AlertSize.Small" AlertStyle="AlertStyle.Danger" Visible="@errorVisible">Cannot save Work Item</RadzenAlert>
+    <RadzenTemplateForm TItem="WorkItemEditDTO" Data="@workItem" Visible="@(workItem != null)" Submit="@FormSubmit">
+
+@*         <RadzenRow Style="margin-bottom: 1rem">
+            <RadzenColumn SizeMD="3">
+                <RadzenLabel Text="Project" Component="ProjectId" Style="width: 100%" />
+            </RadzenColumn>
+            <RadzenColumn SizeMD="9">
+                <RadzenDropDown Data="@projects" TextProperty="Name" ValueProperty="ProjectId" AllowClear=true
+                                Placeholder="Choose Project" Style="display: block; width: 100%" @bind-Value="@workItem.ProjectId" Name="ProjectId" />
+                <RadzenRequiredValidator Component="ProjectId" Text="Project is required" />
+            </RadzenColumn>
+        </RadzenRow> *@
+
+        <RadzenRow Style="margin-bottom: 1rem">
+            <RadzenColumn SizeMD="3">
+                <RadzenLabel Text="Name" Component="Name" Style="width: 100%" />
+            </RadzenColumn>
+            <RadzenColumn SizeMD="9">
+                <RadzenTextBox Style="display: block; width: 100%" @bind-Value="@workItem.Name" Name="Name" />
+                <RadzenRequiredValidator Component="Name" Text="Name is required" />
+            </RadzenColumn>
+        </RadzenRow>
+
+        <RadzenRow Style="margin-bottom: 1rem">
+            <RadzenColumn SizeMD="3">
+                <RadzenLabel Text="Description" Component="Description" Style="width: 100%" />
+            </RadzenColumn>
+            <RadzenColumn SizeMD="9">
+                <RadzenTextBox Style="display: block; width: 100%" @bind-Value="@workItem.Description" Name="Description" />
+            </RadzenColumn>
+        </RadzenRow>
+
+        <RadzenRow style="margin-bottom: 1rem">
+            <RadzenColumn SizeMD="3">
+                <RadzenLabel Text="Status" Component="Status" style="width: 100%" />
+            </RadzenColumn>
+            <RadzenColumn SizeMD="9">
+                <RadzenDropDown Data="@(Enum.GetValues(typeof(WorkItemStatus)).Cast<WorkItemStatus>())" TextProperty="Name" ValueProperty="Value" AllowClear=true
+                                Placeholder="Choose Status" style="display: block; width: 100%" @bind-Value="@workItem.Status" Name="Status" />
+                <RadzenRequiredValidator Component="Status" Text="Status is required" />
+            </RadzenColumn>
+        </RadzenRow>
+
+        <RadzenRow style="margin-bottom: 1rem">
+            <RadzenColumn SizeMD="3">
+                <RadzenLabel Text="Priority" Component="Priority" style="width: 100%" />
+            </RadzenColumn>
+            <RadzenColumn SizeMD="9">
+                <RadzenDropDown Data="@(Enum.GetValues(typeof(WorkItemPriority)).Cast<WorkItemPriority>())" TextProperty="Name" ValueProperty="Value" AllowClear=true
+                                Placeholder="Choose Priority" style="display: block; width: 100%" @bind-Value="@workItem.Priority" Name="Priority" />
+                <RadzenRequiredValidator Component="Priority" Text="Priority is required" />
+            </RadzenColumn>
+        </RadzenRow>
+
+        <RadzenRow style="margin-bottom: 1rem">
+            <RadzenColumn SizeMD="3">
+                <RadzenLabel Text="End Date" Component="EndDate" style="width: 100%" />
+            </RadzenColumn>
+            <RadzenColumn SizeMD="9">
+                <RadzenDatePicker DateFormat="MM/dd/yyyy" style="display: block; width: 100%" @bind-Value="@workItem.EndDate" Name="EndDate" />
+                <RadzenRequiredValidator Component="EndDate" Text="End Date is required" />
+            </RadzenColumn>
+        </RadzenRow>
+
+        <RadzenRow Style="margin-bottom: 1rem">
+            <RadzenColumn SizeMD="3">
+                <RadzenLabel Text="Assigned User" Component="AssignedUserId" Style="width: 100%" />
+            </RadzenColumn>
+            <RadzenColumn SizeMD="9">
+                <RadzenTextBox Style="display: block; width: 100%" @bind-Value="@workItem.AssignedUserId" Name="AssignedUserId" />
+            </RadzenColumn>
+        </RadzenRow>
+
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Center" Gap="0.5rem">
+            <RadzenButton ButtonStyle="ButtonStyle.Light" Text="Cancel" Variant="Variant.Flat" Click="@CancelButtonClick" />
+            <RadzenButton ButtonStyle="ButtonStyle.Primary" ButtonType="ButtonType.Submit" Icon="save" Text="Save" Variant="Variant.Flat" />
+        </RadzenStack>
+    </RadzenTemplateForm>
+</RadzenColumn>
+
+@code {
+    [Parameter]
+    public int WorkItemId { get; set; }
+    // [Parameter]
+    // public int ProjectId { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            workItem = await HttpClient.GetFromJsonAsync<WorkItemEditDTO>($"api/WorkItem/{WorkItemId}");
+            // projects = await HttpClient.GetFromJsonAsync<bool>($"api/Project/isOwner/{ProjectId}");
+        }
+        catch (Exception ex)
+        {
+            errorVisible = true;
+        }
+    }
+    protected bool errorVisible;
+    protected WorkItemEditDTO workItem;
+
+    // protected bool projects;
+
+    protected async Task FormSubmit()
+    {
+        try
+        {
+            await HttpClient.PutAsJsonAsync($"api/WorkItem", workItem);
+            dialogService.Close(workItem);
+        }
+        catch (Exception ex)
+        {
+            errorVisible = true;
+        }
+    }
+
+    protected void CancelButtonClick(MouseEventArgs args)
+    {
+        dialogService.Close(null);
+    }
+}

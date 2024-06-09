@@ -11,31 +11,31 @@
     <div class="row">
         <div class="col-md-6 offset-md-3 col-lg-4 offset-lg-4">
             <section>
-                <h2 class="text-center">Use a local account to log in.</h2>
+                <h2 class="text-center text-login">Use a local account to log in.</h2>
                 <hr />
-                <div class="form-group">
-                    <RadzenTextBox @bind-Value="userLogin.Email" Placeholder="name@example.com" class="form-control" />
-                    <label>Email</label>
+                <div class="form-group m-2">
+                    <label class="text-login">Email</label>
+                    <RadzenTextBox @bind-Value="userLogin.Email" Placeholder="name@example.com" class="form-control" Name="Email" />
                 </div>
-                <div class="form-group">
-                    <RadzenPassword @bind-Value="userLogin.Password" Placeholder="Password" class="form-control" />
-                    <label>Password</label>
+                <div class="form-group m-2">
+                    <label class="text-login">Password</label>
+                    <RadzenPassword @bind-Value="userLogin.Password" Placeholder="Password" class="form-control" Name="Password" />
                 </div>
-                <div class="form-check mb-3">
+                <div class="form-check mb-3 ">
                     <RadzenCheckBox @bind-Value="rememberMe" class="form-check-input" />
-                    <label class="form-check-label">Remember me</label>
+                    <label class="form-check-label text-login">Remember me</label>
                 </div>
-                <div class="text-center">
-                    <RadzenButton Text="Log in" ButtonType="ButtonType.Submit" Icon="login" class="btn btn-primary btn-block" />
+                <div class="text-center ">
+                    <RadzenButton Text="Log in" ButtonType="ButtonType.Submit" Icon="login" class="btn bg-secondary btn-block" />
                 </div>
-                <div class="text-center mt-3">
-                    <RadzenLink Text="Forgot your password?" Path="/forgot-password" />
+                <div class="text-center mt-3 ">
+                    <RadzenLink Style="color:white" Text="Forgot your password?" Path="/forgot-password" />
                 </div>
-                <div class="text-center">
-                    <RadzenLink Text="Register as a new user" Path="/register" />
+                <div class="text-center ">
+                    <RadzenLink Style="color:white" Text="Register as a new user" Path="/register" />
                 </div>
-                <div class="text-center">
-                    <RadzenLink Text="Resend email confirmation" Path="/resend-email-confirmation" />
+                <div class="text-center ">
+                    <RadzenLink Style="color:white" Text="Resend email confirmation" Path="/resend-email-confirmation" />
                 </div>
             </section>
         </div>

@@ -34,7 +34,7 @@ namespace Smart.Core.Services
 
             var workItem = _mapper.Map<WorkItem>(workItemDto);
             workItem.CreatedByUser = user;
-            workItem.AssignedUser = user;
+            //workItem.AssignedUser = user;
 
             await _workItemRepository.AddAsync(workItem);
             await _workItemRepository.SaveChangesAsync();

@@ -1,0 +1,43 @@
+﻿@page "/userInfo"
+@using Smart.Shared.DTOs.UserDTO
+@using System.Globalization
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+
+<RadzenContent Container="main">
+    <RadzenHeading Size="H2" Text="User Profile" Style="color: #fff; text-align: center; margin-bottom: 2rem;" />
+
+    <div class="user-info-container">
+        @if (userInfo != null)
+        {
+            <div class="avatar-container">
+                <RadzenImage Path="/avatars/avatar.png" Style="width: 150px; height: 150px; border-radius: 50%;" />
+            </div>
+            <div class="user-details">
+                <h3 class="user-name">@userInfo.Firstname @userInfo.Lastname</h3>
+                <p class="user-birth-date">Birth Date: @userInfo.BirthDate.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture)</p>
+                <RadzenButton Text="View Tasks" Click="@(() => NavigateToTasksPage())" Style="background-color: #292731; color: #fff;" />
+            </div>
+        }
+        else
+        {
+            <p class="loading-text">Loading user information...</p>
+        }
+    </div>
+</RadzenContent>
+
+
+
+@code {
+    private UserInfoDTO userInfo;
+
+    protected override async Task OnInitializedAsync()
+    {
+        userInfo = await HttpClient.GetFromJsonAsync<UserInfoDTO>("api/user/info");
+    }
+
+    private void NavigateToTasksPage()
+    {
+        NavigationManager.NavigateTo("/tasks");
+    }
+}

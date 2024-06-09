@@ -5,127 +5,102 @@
 @inject NavigationManager NavigationManager
 @inject DialogService DialogService
 
-<RadzenContent Container="main">
-    <RadzenHeading Size="H2" Text="Projects" />
-
-    <RadzenButton Text="New Project" Icon="add_circle_outline" Click="@OpenNewProjectDialog" />
-
-    <RadzenTabs>
-        <Tabs>
-            <RadzenPanelMenu Text="Owned Projects">
-                @if (ownedProjects != null)
-                {
-                    <RadzenDataGrid @ref="ownedProjectsGrid" Data="@ownedProjects" AllowPaging="true" PageSize="10" AllowSorting="true">
-                        <Columns>
-                            <RadzenDataGridColumn TItem="ProjectForUserDTO" Property="Name" Title="Name" />
-                            <RadzenDataGridColumn TItem="ProjectForUserDTO" Context="project">
-                                <Template>
-                                    <RadzenButton Icon="launch" Text="Open" Click="@(() => NavigateToProjectPage(project.ProjectId))" />
-                                </Template>
-                            </RadzenDataGridColumn>
-                        </Columns>
-                    </RadzenDataGrid>
-                }
-                else
-                {
-                    <p>Loading owned projects...</p>
-                }
-            </RadzenPanelMenu>
-            <RadzenPanelMenu Text="Member Projects">
-                @if (memberProjects != null)
-                {
-                    <RadzenDataGrid @ref="memberProjectsGrid" Data="@memberProjects" AllowPaging="true" PageSize="10" AllowSorting="true">
-                        <Columns>
-                            <RadzenDataGridColumn TItem="ProjectForUserDTO" Property="Name" Title="Name" />
-                            <RadzenDataGridColumn TItem="ProjectForUserDTO" Context="project">
-                                <Template>
-                                    <RadzenButton Icon="launch" Text="Open" Click="@(() => NavigateToProjectPage(project.ProjectId))" />
-                                </Template>
-                            </RadzenDataGridColumn>
-                        </Columns>
-                    </RadzenDataGrid>
-                }
-                else
-                {
-                    <p>Loading member projects...</p>
-                }
-            </RadzenPanelMenu>
-        </Tabs>
-    </RadzenTabs>
-</RadzenContent>
-
-<div class="dialog-overlay" style="display: @(newProjectDialogOpen ? "block" : "none")">
-    <div class="dialog-content">
-        <div style="width: 600px;">
-            <RadzenStack Gap="1rem">
-                <RadzenHeading Size="H3" Text="New Project" />
-                <RadzenTextBox @bind-Value="@newProjectName" Label="Name" />
-                <RadzenTextArea @bind-Value="@newProjectDescription" Label="Description" />
-                <RadzenButton Text="Create" Click="@CreateNewProject" />
-            </RadzenStack>
+<div class="container-fluid">
+    <div class="row justify-content-end">
+        <div class="col-12 col-lg-3 end-100">
+            <div class="add-button-container">
+                <RadzenButton Text="Add Project" Icon="add" Style="background-color: #292731; color: silver;" Click="@AddButtonClick" />
+            </div>
         </div>
     </div>
 </div>
+<RadzenContent Container="main">
+    <RadzenHeading Size="H2" Text="Projects" Style="color:silver; text-align: center; margin-bottom: 2rem;" />
 
+    <div class="filter-container">
+        <RadzenButton Text="All" Click="@(() => FilterProjects(null))" Class="filter-btn" Style="background-color: #292731;" />
+        <RadzenButton Text="Owned" Click="@(() => FilterProjects(true))" Class="filter-btn" Style="background-color: #292731;" />
+        <RadzenButton Text="Member" Click="@(() => FilterProjects(false))" Class="filter-btn" Style="background-color: #292731;" />
+    </div>
 
-@code {
-    private bool newProjectDialogOpen = false;
-    private string newProjectName = string.Empty;
-    private string newProjectDescription = string.Empty;
-    private RadzenDataGrid<ProjectForUserDTO> ownedProjectsGrid;
-    private RadzenDataGrid<ProjectForUserDTO> memberProjectsGrid;
-    private List<ProjectForUserDTO> ownedProjects;
-    private List<ProjectForUserDTO> memberProjects;
-    private ProjectCreateDTO projectCreate = new ProjectCreateDTO();
+    <div class="search-container">
+        <RadzenTextBox @bind-Value="@searchQuery" @oninput="UpdateSearchTerm" Placeholder="Search projects..." Style="width: 300px;" />
+    </div>
 
-    private void OpenNewProjectDialog()
+    @if (!projectFound)
     {
-        newProjectDialogOpen = true;
+        <div class="text-center d-flex justify-content-center">
+            <RadzenText Text="Not Found"></RadzenText>
+            <RadzenImage Path="/notproduct.png" Style="cursor: pointer; width: 300px; height: 300px; padding: 2px;" />
+        </div>
     }
-
-    private async Task CreateNewProject()
+    else
     {
-        if (string.IsNullOrWhiteSpace(newProjectName) || string.IsNullOrWhiteSpace(newProjectDescription))
-        {
-            // Handle validation error
-            return;
-        }
-
-        projectCreate.Name = newProjectName;
-        projectCreate.Description = newProjectDescription;
-
-        try
-        {
-            var response = await HttpClient.PostAsJsonAsync($"api/project/create", projectCreate);
-
-            if (response.IsSuccessStatusCode)
+        <div class="project-grid">
+            @if (filteredProjects != null)
             {
-                var projectId = await response.Content.ReadFromJsonAsync<int>();
-
-                if (projectId != default)
+                int index = 0;
+                @foreach (var project in filteredProjects)
                 {
-                    ownedProjects.Add(new ProjectForUserDTO
-                        {
-                            ProjectId = projectId,
-                            Name = newProjectName
-                        });
-
-                    await ownedProjectsGrid.Reload();
-
-                    newProjectDialogOpen = false;
-                    newProjectName = string.Empty;
-                    newProjectDescription = string.Empty;
+                    <div class="project-card @(index % 2 == 0 ? "card-background-1" : "card-background-2")" @onclick="@(() => NavigateToProjectPage(project.ProjectId))">
+                        <h4 class="project-name">@project.Name</h4>
+                    </div>
+                    index++;
                 }
             }
             else
             {
-                // Handle error
+                <p class="loading-text">Loading projects...</p>
             }
+        </div>
+    }
+</RadzenContent>
+
+@code {
+    private string searchQuery = "";
+    private List<ProjectForUserDTO> filteredProjects = new List<ProjectForUserDTO>();
+    private List<ProjectForUserDTO> allProjects = new List<ProjectForUserDTO>();
+    private List<ProjectForUserDTO> ownedProjects = new List<ProjectForUserDTO>();
+    private List<ProjectForUserDTO> memberProjects = new List<ProjectForUserDTO>();
+    private bool projectFound = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            ownedProjects = await HttpClient.GetFromJsonAsync<List<ProjectForUserDTO>>("api/project/owner") ?? new List<ProjectForUserDTO>();
+            memberProjects = await HttpClient.GetFromJsonAsync<List<ProjectForUserDTO>>("api/project/member") ?? new List<ProjectForUserDTO>();
+            allProjects = ownedProjects.Concat(memberProjects).ToList();
+            filteredProjects = allProjects;
         }
         catch (Exception ex)
         {
-            // Handle exception (log it, show message to user, etc.)
+            allProjects = new List<ProjectForUserDTO>();
+            filteredProjects = allProjects;
         }
+        projectFound = filteredProjects.Any();
+    }
+
+    private void Search()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            filteredProjects = allProjects;
+        }
+        else
+        {
+            filteredProjects = allProjects
+                .Where(p => p.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+                            p.ProjectId.ToString().Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+        projectFound = filteredProjects.Any();
+    }
+
+    private void UpdateSearchTerm(ChangeEventArgs e)
+    {
+        searchQuery = e.Value.ToString();
+        Search();
     }
 
     private void NavigateToProjectPage(int projectId)
@@ -133,18 +108,25 @@
         NavigationManager.NavigateTo($"/project/{projectId}");
     }
 
-    protected override async Task OnInitializedAsync()
+    protected async Task AddButtonClick(MouseEventArgs args)
     {
-        try
+        await DialogService.OpenAsync<ProjectAdd>("Add Project", null);
+        await OnInitializedAsync();
+    }
+    private void FilterProjects(bool? isOwned)
+    {
+        if (isOwned == null)
         {
-            ownedProjects = await HttpClient.GetFromJsonAsync<List<ProjectForUserDTO>>("api/project/owner");
-            memberProjects = await HttpClient.GetFromJsonAsync<List<ProjectForUserDTO>>("api/project/member");
+            filteredProjects = allProjects;
         }
-        catch (Exception ex)
+        else if (isOwned == true)
         {
-            // Handle exception (log it, show message to user, etc.)
-            ownedProjects = new List<ProjectForUserDTO>();
-            memberProjects = new List<ProjectForUserDTO>();
+            filteredProjects = ownedProjects;
         }
+        else
+        {
+            filteredProjects = memberProjects;
+        }
+        searchQuery="";
     }
 }

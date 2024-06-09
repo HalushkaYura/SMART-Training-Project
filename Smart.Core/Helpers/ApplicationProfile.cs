@@ -1,6 +1,7 @@
 using AutoMapper;
 using Smart.Core.Entities;
 using Smart.Shared.DTOs.ProjectDTO;
+using Smart.Shared.DTOs.TaskDTO;
 using Smart.Shared.DTOs.UserDTO;
 using System.Data;
 
@@ -29,6 +30,9 @@ namespace Smart.Core.Helpers
 
             CreateMap<UserProject, ProjectMemberDTO>();
 
+            CreateMap<WorkItem, WorkItemCreateDTO>().ReverseMap();
+            CreateMap<WorkItem, WorkItemEditDTO>().ReverseMap();
+            CreateMap<WorkItem, WorkItemInfoDTO>().ReverseMap();
 
             /*CreateMap<InviteUser, UserInviteInfoDTO>()
                 .ForMember(x => x.Id, act => act.MapFrom(srs => srs.Id))

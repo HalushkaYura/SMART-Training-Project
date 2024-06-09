@@ -19,7 +19,7 @@ namespace Smart.ServerSide.Controllers
         }
 
         [Authorize]
-        [HttpPost]
+        [HttpPost("createWorkItem")]
         public async Task<IActionResult> CreateWorkItem([FromBody] WorkItemCreateDTO workItemDto)
         {
             var workItemInfo = await _workItemService.CreateWorkItemAsync(workItemDto, UserId);
@@ -43,7 +43,7 @@ namespace Smart.ServerSide.Controllers
         }
 
         [Authorize]
-        [HttpPut]
+        [HttpPut ("editWorkItem")]
         public async Task<IActionResult> UpdateWorkItem([FromBody] WorkItemInfoDTO workItemDto)
         {
             await _workItemService.UpdateWorkItemAsync(workItemDto);
@@ -51,7 +51,7 @@ namespace Smart.ServerSide.Controllers
         }
 
         [Authorize]
-        [HttpDelete("{workItemId}")]
+        [HttpDelete("delete/{workItemId}")]
         public async Task<IActionResult> DeleteWorkItem(int workItemId)
         {
             await _workItemService.DeleteWorkItemAsync(workItemId);
