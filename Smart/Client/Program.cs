@@ -1,9 +1,7 @@
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Radzen;
-using Smart.Client;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Components.Authorization;
 
 namespace Smart.Client
 {
@@ -25,7 +23,7 @@ namespace Smart.Client
             builder.Services.AddScoped<ContextMenuService>();
             builder.Services.AddRadzenComponents();
             builder.Services.AddAuthorizationCore();
-
+            builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>(); 
 
             await builder.Build().RunAsync();
         }

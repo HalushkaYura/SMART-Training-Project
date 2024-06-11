@@ -9,14 +9,13 @@ using Smart.Infrastructure;
 using Smart.Core.Helpers;
 using ServiceStack;
 using System.Configuration;
+using Smart.Server.Hubs;
 namespace Smart
 {
     public class Program
     {
         public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
         {
-
-
             services.AddControllers();
             services.AddDbContext(configuration.GetConnectionString("DefaultConnection"));
             services.AddIdentityDbContext();
@@ -33,6 +32,8 @@ namespace Smart
 
             services.AddHangfire(x => x.UseSqlServerStorage(configuration.GetConnectionString("DefaultConnection")));
             services.AddHangfireServer();
+
+            services.AddSignalR();
         }
         public static void Main(string[] args)
         {
@@ -71,9 +72,11 @@ namespace Smart
             app.UseAuthentication();
             app.UseAuthorization();
 
+            
             app.MapRazorPages();
             app.MapControllers();
             app.MapFallbackToFile("index.html");
+            app.MapHub<ChatHub>("/chathub");
 
             app.Run();
         }

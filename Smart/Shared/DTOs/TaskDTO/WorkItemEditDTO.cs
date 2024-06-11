@@ -13,6 +13,7 @@ namespace Smart.Shared.DTOs.TaskDTO
         public string Name { get; set; } // Назва робочого елементу
         public string Description { get; set; } // Опис робочого елементу
         public WorkItemStatus Status { get; set; }
+        public int Procent {  get; set; }
         public WorkItemPriority Priority { get; set; }
         public DateTime EndDate { get; set; } // Дата завершення робочого елементу
         public string AssignedUserId { get; set; } // Ідентифікатор користувача, якому призначено робочий елемент

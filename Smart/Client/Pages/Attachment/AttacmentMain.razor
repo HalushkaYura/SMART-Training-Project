@@ -1,0 +1,95 @@
+﻿@page "/workitem/{workItemId}/attachments"
+@using Microsoft.AspNetCore.Http
+@using Smart.Shared.DTOs.AttachmentDTO
+@using System.Net.Http.Headers
+@using Microsoft.AspNetCore.Components.Forms
+
+@inject HttpClient HttpClient
+
+<h2>Attachments</h2>
+
+<div>
+    <h4>Add Attachment</h4>
+    <InputFile OnChange="@HandleFileSelected" />
+    <button disabled="@isUploading" @onclick="UploadFile">Upload</button>
+</div>
+
+@if (attachments == null)
+{
+    <p>Loading attachments...</p>
+}
+else
+{
+    <ul>
+        @foreach (var attachment in attachments)
+        {
+            <li>
+                <a href="@attachment.FilePath" target="_blank">@attachment.FileName</a>
+                <button @onclick="@(() => DeleteAttachment(attachment.AttachmentId))">Delete</button>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    [Parameter] public int WorkItemId { get; set; }
+    private IEnumerable<AttachmentDTO> attachments;
+    private IFormFile selectedFile;
+    private bool isUploading;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadAttachments();
+    }
+
+    private async Task LoadAttachments()
+    {
+        attachments = await HttpClient.GetFromJsonAsync<IEnumerable<AttachmentDTO>>($"api/attachments/{WorkItemId}");
+    }
+
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var formData = new MultipartFormDataContent();
+        formData.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data");
+        var fileContent = new StreamContent(selectedFile.OpenReadStream());
+        fileContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+            {
+                FileName = selectedFile.Name
+            };
+        formData.Add(fileContent);
+    }
+
+    private async Task UploadFile()
+    {
+        isUploading = true;
+
+        var formData = new MultipartFormDataContent();
+        formData.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data");
+        var fileContent = new StreamContent(selectedFile.OpenReadStream());
+        fileContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data")
+        {
+            FileName = selectedFile.Name
+        };
+        formData.Add(fileContent);
+
+        var response = await HttpClient.PostAsync($"api/attachments/{WorkItemId}", formData, CancellationToken.None);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var attachment = await response.Content.ReadFromJsonAsync<AttachmentDTO>();
+            attachments = attachments.Append(attachment);
+        }
+
+        isUploading = false;
+        selectedFile = null;
+    }
+
+    private async Task DeleteAttachment(int attachmentId)
+    {
+        var response = await HttpClient.DeleteAsync($"api/attachments/{attachmentId}");
+        if (response.IsSuccessStatusCode)
+        {
+            attachments = attachments.Where(a => a.AttachmentId != attachmentId);
+        }
+    }
+}

@@ -20,6 +20,7 @@ namespace Smart.Core.Services
         protected readonly IHttpContextAccessor _httpContextAccessor;
         protected readonly IRepository<UserProject> _userProjectRepository;
         protected readonly IRepository<User> _userRepository;
+        protected readonly IRepository<Chat> _chatRepository;
         //protected readonly INotificationService _notificationService;
         public ProjectService(
             IMapper mapper,
@@ -27,7 +28,8 @@ namespace Smart.Core.Services
             IRepository<Project> projectRepository,
             IRepository<UserProject> userProjectRepository,
             UserManager<User> userManager,
-            IRepository<User> userRepository)
+            IRepository<User> userRepository,
+            IRepository<Chat> chatRepository)
         {
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
@@ -35,6 +37,7 @@ namespace Smart.Core.Services
             _userProjectRepository = userProjectRepository;
             _userManager = userManager;
             _userRepository = userRepository;
+            _chatRepository = chatRepository;
         }
 
 
@@ -57,12 +60,24 @@ namespace Smart.Core.Services
                     Name = projectDTO.Name,
                     Description = projectDTO.Description,
                     StartDate = DateTime.Now, 
-                    CreatedByUserId = userId 
+                    CreatedByUserId = userId,
+                    IsPublic = false
                 };
-
                 await _projectRepository.AddAsync(project);
                 await _projectRepository.SaveChangesAsync();
                 await CreateUserProject(userId, project.ProjectId, true);
+                
+                var chat = new Chat
+                { 
+                    ProjectId = project.ProjectId,
+                    CreatedDate = DateTime.Now,
+
+                };
+                await _chatRepository.AddAsync(chat);
+                await _chatRepository.SaveChangesAsync();
+
+
+
 
                 return new ProjectIdDTO { ProjectId = project.ProjectId };
             }

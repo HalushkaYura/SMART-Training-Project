@@ -45,11 +45,6 @@ namespace Smart.Infrastructure.Data
                 .HasForeignKey(w => w.ProjectId);
 
             modelBuilder.Entity<WorkItem>()
-                .HasOne(w => w.ParentTask)
-                .WithMany(w => w.SubTasks)
-                .HasForeignKey(w => w.ParentTaskId);
-
-            modelBuilder.Entity<WorkItem>()
                 .HasOne(w => w.AssignedUser)
                 .WithMany(u => u.AssignedTasks)
                 .HasForeignKey(w => w.AssignedUserId);
@@ -105,8 +100,6 @@ namespace Smart.Infrastructure.Data
                 .HasMany(p => p.WorkItems)
                 .WithOne(w => w.Project)
                 .HasForeignKey(w => w.ProjectId);
-
-
         }
     }
 }

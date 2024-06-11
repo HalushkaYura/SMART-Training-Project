@@ -292,6 +292,9 @@ namespace Smart.Infrastructure.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -454,11 +457,10 @@ namespace Smart.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("ParentTaskId")
-                        .IsRequired()
+                    b.Property<int>("Priority")
                         .HasColumnType("int");
 
-                    b.Property<int>("Priority")
+                    b.Property<int>("Procent")
                         .HasColumnType("int");
 
                     b.Property<int>("ProjectId")
@@ -478,8 +480,6 @@ namespace Smart.Infrastructure.Migrations
                     b.HasIndex("AssignedUserId");
 
                     b.HasIndex("CreatedByUserId");
-
-                    b.HasIndex("ParentTaskId");
 
                     b.HasIndex("ProjectId");
 
@@ -662,12 +662,6 @@ namespace Smart.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Smart.Core.Entities.WorkItem", "ParentTask")
-                        .WithMany("SubTasks")
-                        .HasForeignKey("ParentTaskId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Smart.Core.Entities.Project", "Project")
                         .WithMany("WorkItems")
                         .HasForeignKey("ProjectId")
@@ -681,8 +675,6 @@ namespace Smart.Infrastructure.Migrations
                     b.Navigation("AssignedUser");
 
                     b.Navigation("CreatedByUser");
-
-                    b.Navigation("ParentTask");
 
                     b.Navigation("Project");
                 });
@@ -723,8 +715,6 @@ namespace Smart.Infrastructure.Migrations
                     b.Navigation("Attachments");
 
                     b.Navigation("Comments");
-
-                    b.Navigation("SubTasks");
                 });
 #pragma warning restore 612, 618
         }

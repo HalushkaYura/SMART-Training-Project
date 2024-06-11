@@ -1,0 +1,28 @@
+﻿@page "/view-participants/{ProjectId:int}"
+@using Smart.Shared.DTOs.ProjectDTO
+@using Smart.Shared.DTOs.UserDTO
+@inject HttpClient HttpClient
+@inject DialogService DialogService
+<RadzenFieldset Text="Participants">
+    <RadzenDataGrid Data="@projectDetail" TItem="ProjectDetailsDTO">
+        <Columns>
+            <RadzenDataGridColumn TItem="UserInfoDTO" Property="Email" Title="Email" />
+        </Columns>
+    </RadzenDataGrid>
+</RadzenFieldset>
+@code {
+    [Parameter]
+    public int ProjectId { get; set; }
+
+    private List<ProjectDetailsDTO> projectDetail = new List<ProjectDetailsDTO>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        projectDetail = await HttpClient.GetFromJsonAsync<List<ProjectDetailsDTO>>("api/project/member") ?? new List<ProjectDetailsDTO>();
+    }
+
+    private void Close()
+    {
+        DialogService.Close();
+    }
+}

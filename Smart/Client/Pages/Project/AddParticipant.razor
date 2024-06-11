@@ -1,0 +1,35 @@
+﻿@page "/add-participant/{ProjectId:int}"
+@inject HttpClient HttpClient
+@inject DialogService DialogService
+
+@* <EditForm Model="newParticipantEmail" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <RadzenFieldset Text="Add Participant">
+        <RadzenTemplateForm TItem="string" Data="@newParticipantEmail">
+            <RadzenTextBox Name="Email" @bind-Value="newParticipantEmail" Placeholder="Participant Email" Style="width: 100%;" />
+            <RadzenButton Text="Add" ButtonType="Submit" Style="margin-top: 20px;" />
+        </RadzenTemplateForm>
+    </RadzenFieldset>
+</EditForm> *@
+
+@code {
+    [Parameter]
+    public int ProjectId { get; set; }
+
+    // private string newParticipantEmail;
+
+    // private async Task HandleValidSubmit()
+    // {
+    //     var response = await HttpClient.PostAsJsonAsync($"api/project/{ProjectId}", new { Email = newParticipantEmail });
+    //     if (response.IsSuccessStatusCode)
+    //     {
+    //         DialogService.Close();
+    //     }
+    //     else
+    //     {
+    //         // Handle error
+    //     }
+    // }
+}

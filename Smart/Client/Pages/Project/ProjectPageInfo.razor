@@ -1,64 +1,95 @@
-﻿@page "/project/{ProjectId}"
+﻿@page "/project/{ProjectId:int}"
+@using Smart.Client.Pages.Chat
+@using Smart.Client.Pages.Task
 @using Smart.Shared.DTOs.ProjectDTO
 @using Smart.Shared.DTOs.TaskDTO
 @using System.Net.Http.Headers
+@using Smart.Shared.Helpers.Enums
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
+@inject DialogService DialogService
 
 <RadzenContent Container="main">
-    <RadzenHeading Size="H2" Text="@project.Name" />
-    @* <RadzenText TextStyle="TextStyle.Subtitle1">@project.Description</RadzenText> *@
+    <div class="project-header">
+        <div class="project-title-section">
+            <RadzenHeading Size="H2" Text="@project.Name" @onclick="EditProjectName" />
+            <div class="header-icons">
+                <span class="icon align-content-center" @onclick="OpenParticipantsDialog">Members <RadzenIcon Icon="group" /></span>
+                <span class="icon" @onclick="ToggleProjectPrivacy">
+                    @if (project.IsPublic || project.IsPublic==null)
+                    {
+                        <RadzenIcon Icon="lock_open" />
+                    }
+                    else
+                    {
+                        <RadzenIcon Icon="lock" />
+                    }
+                </span>
+            </div>
+            <div class="add-task">
+                Create new task <span text="" class="icon" @onclick="OpenNewTaskDialog"><RadzenIcon Icon="add_circle_outline" /></span>
+            </div>
+        </div>
+        <div class="project-actions-section">
+            @if (project.IsPublic)
+            {
+                <span class="icon" @onclick="CopyProjectLink"><RadzenIcon Icon="link" /></span>
+            }
+            <span class="icon" @onclick="OpenAddParticipantDialog"><RadzenIcon Icon="person_add" /></span>
+        </div>
+    </div>
 
-        <RadzenButton Text="New Task" Icon="add_circle_outline" Click="@OpenNewTaskDialog" />
+    <div class="task-board">
+        @foreach (var status in Enum.GetValues(typeof(WorkItemStatus)).Cast<WorkItemStatus>())
+        {
+            <div class="task-column">
+                <div class="column-header">
+                    <RadzenHeading Size="H4" Text="@status.ToString()" />
+                </div>
+                <div class="task-list">
+                    @foreach (var task in tasks.Where(t => t.Status == status))
+                    {
+                        <div class="task-card" @onclick="() => NavigateToTaskPage(task.WorkItemId)">
+                            <div class="task-title">@task.Name</div>
+                            <div class="task-description">@task.Description</div>
+                            <div class="task-priority">@task.Priority</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
 
-        <RadzenDataGrid @ref="tasksGrid" Data="@tasks" AllowPaging="true" PageSize="10" AllowSorting="true">
-            <Columns>
-                <RadzenDataGridColumn TItem="WorkItemInfoDTO" Property="Name" Title="Name" />
-                <RadzenDataGridColumn TItem="WorkItemInfoDTO" Property="Description" Title="Description" />
-                <RadzenDataGridColumn TItem="WorkItemInfoDTO" Property="DueDate" Title="Due Date" />
-                <RadzenDataGridColumn TItem="WorkItemInfoDTO" Property="Priority" Title="Priority" />
-                <RadzenDataGridColumn TItem="WorkItemInfoDTO" Context="task" Bubble="false">
-                    <Template>
-                        <RadzenButton Icon="launch" Text="View Details" Click="@(() => NavigateToTaskPage(task.WorkItemId))" />
-                    </Template>
-                </RadzenDataGridColumn>
-            </Columns>
-        </RadzenDataGrid>
+    <RadzenIcon Icon="chat" class="chat" Style="position: fixed; bottom: 20px; right: 20px; color:white " onclick="@OpenChatDialog" />
+</RadzenContent>
 
-        <RadzenIcon Icon="chat" Style="position: fixed; bottom: 20px; right: 20px;" Click="@OpenChatDialog" />
-    </RadzenContent>
-
-    <RadzenDialog @bind-Value="@newTaskDialogOpen" Width="600px">
-        <!-- Task creation form -->
-    </RadzenDialog>
-
-    <RadzenDialog @bind-Value="@chatDialogOpen" Width="600px">
-        <!-- Project chat -->
-    </RadzenDialog>
-
-    <RadzenDialog @bind-Value="@inviteDialogOpen" Width="600px">
-        <!-- Invite user form -->
-    </RadzenDialog>
-
-    @code {
+@code {
     [Parameter]
     public int ProjectId { get; set; }
-
     private ProjectInfoDTO project = new ProjectInfoDTO();
     private List<WorkItemInfoDTO> tasks = new List<WorkItemInfoDTO>();
-    private RadzenDataGrid<WorkItemInfoDTO>? tasksGrid;
+    private bool isEditingName = false;
+    private string InviteLink { get; set; }
 
     private bool newTaskDialogOpen = false;
     private bool chatDialogOpen = false;
-    private bool inviteDialogOpen = false;
+    private bool addParticipantDialogOpen = false;
+    private bool participantsDialogOpen = false;
 
     protected override async Task OnInitializedAsync()
     {
-        // Отримати деталі проекту від контролера
-        project = await HttpClient.GetFromJsonAsync<ProjectInfoDTO>($"api/project/details/{ProjectId}");
+        await LoadProjectData();
+    }
 
-        // Отримати список завдань для проекту від контролера
-        // tasks = await HttpClient.GetFromJsonAsync<List<ProjectInfoDTO>>($"api/workitem/project/{ProjectId}");
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadProjectData();
+    }
+
+    private async Task LoadProjectData()
+    {
+        project = await HttpClient.GetFromJsonAsync<ProjectInfoDTO>($"api/project/details/{ProjectId}");
+        tasks = await HttpClient.GetFromJsonAsync<List<WorkItemInfoDTO>>($"api/workitem/project/{ProjectId}");
     }
 
     private void NavigateToTaskPage(int workItemId)
@@ -69,15 +100,48 @@
     private void OpenNewTaskDialog()
     {
         newTaskDialogOpen = true;
+        DialogService.Open<WorkItemAdd>($"Add Task", new Dictionary<string, object> { { "ProjectId", ProjectId } });
     }
 
     private void OpenChatDialog()
     {
         chatDialogOpen = true;
+        DialogService.Open<ChatDialog>($"Chat", new Dictionary<string, object> { { "ProjectId", ProjectId } });
     }
 
-    private void OpenInviteDialog()
+    private void OpenAddParticipantDialog()
     {
-        inviteDialogOpen = true;
+        addParticipantDialogOpen = true;
+        DialogService.Open<AddParticipant>($"Add Participant", new Dictionary<string, object> { { "ProjectId", ProjectId } });
+    }
+
+    private void OpenParticipantsDialog()
+    {
+        participantsDialogOpen = true;
+        DialogService.Open<ViewParticipants>($"Participants", new Dictionary<string, object> { { "ProjectId", ProjectId } });
+    }
+
+    private void ToggleProjectPrivacy()
+    {
+        project.IsPublic = !project.IsPublic;
+    }
+
+    private async Task SaveProjectName()
+    {
+        isEditingName = false;
+        await HttpClient.PutAsJsonAsync($"api/project/{ProjectId}", project);
+    }
+
+    private void EditProjectName()
+    {
+        isEditingName = true;
+    }
+
+    private void CopyProjectLink()
+    {
+        // project.InviteToken = Guid.NewGuid().ToString();
+        // await HttpClient.PutAsJsonAsync($"api/project/{ProjectId}", project);
+        // InviteLink = $"{NavigationManager.BaseUri}invite/{Board.Id}/{Board.InviteToken}";
+        // await JSRuntime.InvokeVoidAsync("copyTextToClipboard", InviteLink);
     }
 }

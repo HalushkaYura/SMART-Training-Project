@@ -23,12 +23,12 @@ namespace Smart.Core
 
             services.AddScoped<IProjectService, ProjectService>();
             services.AddScoped<IWorkItemService, WorkItemService>();
+            services.AddScoped<IAttachmentService, AttachmentService>();
+            services.AddScoped<IChatService, ChatService>();
+            services.AddScoped<ICommentService, CommentService>();
             //services.AddScoped<IFileService, FileService>();
             //services.AddScoped<ILocaleStorageService, LocaleStorageService>();
             //services.AddScoped<INotificationService, NotificationService>();
-            services.AddSignalR();
-
-
 
         }
 

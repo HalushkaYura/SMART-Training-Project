@@ -1,88 +1,74 @@
-﻿@page "/task/{WorkItemId}"
+﻿@page "/task/{WorkItemId:int}"
 @using System.Net.Http.Headers
 @using Smart.Shared.DTOs.TaskDTO
 @using Smart.Shared.Helpers.Enums
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
+@inject DialogService DialogService
+
 <RadzenContent Container="main">
     <RadzenHeading Size="H2" Text="@workItem.Name" />
     <RadzenText TextStyle="TextStyle.Subtitle1">@workItem.Description</RadzenText>
-        <RadzenText TextStyle="TextStyle.Body1">Start Date: @workItem.StartDate.ToString("d")</RadzenText>
         <RadzenText TextStyle="TextStyle.Body1">End Date: @workItem.EndDate.ToString("d")</RadzenText>
         <RadzenText TextStyle="TextStyle.Body1">Priority: @workItem.Priority</RadzenText>
-        <RadzenText TextStyle="TextStyle.Body1">Assigned To: @assignedUserName</RadzenText>
-        <RadzenText TextStyle="TextStyle.Body1">Created By: @createdByUserName</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body1">Assigned To: @workItem.AssignedUserId</RadzenText>
 
         <RadzenButton Text="Edit" Icon="edit" Click="@OpenEditDialog" />
         <RadzenButton Text="Delete" Icon="delete" Click="@DeleteWorkItem" />
     </RadzenContent>
 
-    <RadzenDialog @bind-Value="@editDialogOpen" Width="600px">
-        <RadzenStack Gap="1rem">
-            <RadzenHeading Size="H3" Text="Edit Task" />
-            <RadzenTextBox @bind-Value="@editTaskName" Label="Name" />
-            <RadzenTextArea @bind-Value="@editTaskDescription" Label="Description" />
-            <RadzenDatePicker @bind-Value="@editTaskStartDate" Label="Start Date" />
-            <RadzenDatePicker @bind-Value="@editTaskEndDate" Label="End Date" />
-            <RadzenDropDown @bind-Value="@editTaskPriority" Data="@priorities" TextProperty="Name" ValueProperty="Value" Label="Priority" />
-            <RadzenButton Text="Save" Click="@SaveEditedTask" />
-        </RadzenStack>
-    </RadzenDialog>
 
     @code {
     [Parameter]
     public int WorkItemId { get; set; }
 
     private WorkItemInfoDTO workItem = new WorkItemInfoDTO();
-    private string assignedUserName = string.Empty;
-    private string createdByUserName = string.Empty;
-
     private bool editDialogOpen = false;
-    private string editTaskName = string.Empty;
-    private string editTaskDescription = string.Empty;
-    private DateTime? editTaskStartDate = null;
-    private DateTime? editTaskEndDate = null;
-    private WorkItemPriority editTaskPriority = WorkItemPriority.Low;
     private List<WorkItemPriority> priorities = Enum.GetValues(typeof(WorkItemPriority)).Cast<WorkItemPriority>().ToList();
 
     protected override async Task OnInitializedAsync()
     {
-        workItem = await HttpClient.GetFromJsonAsync<WorkItemInfoDTO>($"api/workitem/{WorkItemId}");
-        assignedUserName = await HttpClient.GetStringAsync($"api/user/{workItem.AssignedUserId}");
-        createdByUserName = await HttpClient.GetStringAsync($"api/user/{workItem.CreatedByUserId}");
+        try
+        {
+            workItem = await HttpClient.GetFromJsonAsync<WorkItemInfoDTO>($"api/workitem/{WorkItemId}");
 
-        editTaskName = workItem.Name;
-        editTaskDescription = workItem.Description;
-        editTaskStartDate = workItem.StartDate;
-        editTaskEndDate = workItem.EndDate;
-        editTaskPriority = workItem.Priority;
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading work item: {ex.Message}");
+        }
     }
 
     private void OpenEditDialog()
     {
         editDialogOpen = true;
+        DialogService.Open<WorkItemEdit>($"Edit task", new Dictionary<string, object> { { "WorkItem", WorkItemId } });
+
     }
 
-    private async Task SaveEditedTask()
+    private void CloseEditDialog()
     {
-        var updatedWorkItemDto = new WorkItemInfoDTO
-            {
-                WorkItemId = WorkItemId,
-                Name = editTaskName,
-                Description = editTaskDescription,
-                StartDate = editTaskStartDate ?? DateTime.Now,
-                EndDate = editTaskEndDate ?? DateTime.Now.AddDays(7),
-                Priority = editTaskPriority
-            };
-
-        await HttpClient.PutAsJsonAsync($"api/workitem", updatedWorkItemDto);
-        await OnInitializedAsync();
-        editDialogOpen = false;
     }
+
 
     private async Task DeleteWorkItem()
     {
-        await HttpClient.DeleteAsync($"api/workitem/{WorkItemId}");
-        NavigationManager.NavigateTo($"/project/{workItem.ProjectId}");
+        try
+        {
+            var response = await HttpClient.DeleteAsync($"api/workitem/{WorkItemId}");
+            if (response.IsSuccessStatusCode)
+            {
+                NavigationManager.NavigateTo($"/project/{workItem.ProjectId}");
+            }
+            else
+            {
+                Console.WriteLine("Error deleting work item");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting work item: {ex.Message}");
+        }
     }
 }

@@ -75,6 +75,7 @@
                 <RadzenPanelMenu DisplayStyle="MenuItemDisplayStyle.IconAndText" ShowArrow="true" Style="background-color: #292731; border:none">
                     <RadzenPanelMenuItem class="panel-menu-hover-effect"  Text="All project" Icon="work_outline" Style="color:silver" Click="@(() => NavigationManager.NavigateTo("/projects"))"> </RadzenPanelMenuItem>
                     <RadzenPanelMenuItem class="panel-menu-hover-effect" Text="You assignments" Icon="assignment" Style="color:silver" Click="@(() => NavigationManager.NavigateTo("/projects"))"> </RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem class="panel-menu-hover-effect" Text="You assignments" Icon="assignment" Style="color:silver" Click="@(() => NavigationManager.NavigateTo("/chatdialog"))"> </RadzenPanelMenuItem>
                     <RadzenText Style="font-size:medium ; padding-left:10px; color: silver; margin-top:20px">Work plase</RadzenText>
                     @*додаткові поля ще не придумав*@
                     <RadzenRow AlignItems="Radzen.AlignItems.Center" JustifyContent="Radzen.JustifyContent.SpaceBetween" Style="display: flex; width: 100%;">
@@ -234,6 +235,5 @@
     {
         NavigationManager.NavigateTo($"/project/{projectId}");
         menuVisible = false;
-
     }
 }
