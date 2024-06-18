@@ -12,27 +12,24 @@
     <link href="Smart.Client.styles.css" rel="stylesheet" />
     <link rel="stylesheet" href="_content/Radzen.Blazor/css/material-base.css">
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
-
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.14.0/Sortable.min.js"></script>
+    <script src="scripts/sortableHelper.js"></script>
     <link href="css/customStyle.css" rel="stylesheet" />
 </head>
-    <body>
-        <div id="app">
-            <LoadingPage />
 
-            <!--<svg class="loading-progress">
-        <circle r="40%" cx="50%" cy="50%" />
-        <circle r="40%" cx="50%" cy="50%" />
-    </svg>
-    <div class="loading-progress-text"></div>-->
-        </div>
+<body>
+    <div id="app">
+        <LoadingPage />
+    </div>
 
-        <div id="blazor-error-ui">
-            An unhandled error has occurred.
-            <a href="" class="reload">Reload</a>
-            <a class="dismiss">🗙</a>
-        </div>
-        <script src="_framework/blazor.webassembly.js"></script>
-        <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
-    </body>
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+    <script src="js/site.js"></script> <!-- Added this line -->
+</body>
 
 </html>

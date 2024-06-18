@@ -4,8 +4,8 @@
     {
         Open,
         InProgress,
-        Completed,
         OnHold,
-        Canceled
+        Completed
+
     }
 }

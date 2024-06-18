@@ -11,6 +11,7 @@ namespace Smart.Core.Entities
         public DateTime StartDate { get; set; } // Дата початку проекту
         public DateTime EndDate { get; set; } // Дата завершення проекту
         public string CreatedByUserId { get; set; } // Ідентифікатор користувача, який створив проект
+        public string InviteToken { get; set; }
 
         public User CreatedByUser { get; set; } // Користувач, який створив проект
 

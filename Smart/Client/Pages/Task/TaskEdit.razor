@@ -1,0 +1,108 @@
+﻿@* @using Smart.Shared.DTOs.UserDTO
+ @using Smart.Shared.Helpers.Enums
+@using Smart.Shared.DTOs.TaskDTO
+@inject NotificationService notificationService
+@inject HttpClient HttpClient
+@inject IJSRuntime JSRuntime
+@inject DialogService dialogService
+
+<div class="modal fade show d-block bg-white bg-opacity-50">
+    <div class="modal-dialog ">
+        <div class="modal-content">
+
+            <div class="modal-header bg-warning" style="height: 50px;">
+                <h2 class="modal-title text-center ms-0">Edit Assignment</h2>
+                <button type="button" class="btn-close" @onclick="CloseModal"></button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="workitemEdit" OnValidSubmit="SaveProduct">
+                    <DataAnnotationsValidator />
+                    <FluentValidationValidator />
+
+                    <div class="form-group">
+                        <label for="AssignmentTitle">Title:</label>
+                        <InputText class="form-control" id="AssignmentTitle" @bind-Value="workitemEdit.Title" />
+                        <ValidationMessage For="@(() => workitemEdit.Title)" />
+                        @if (string.IsNullOrWhiteSpace(workitemEdit.Title))
+                        {
+                            <div class="text-danger">Title is required.</div>
+                        }
+                    </div>
+                    <div class="form-group">
+                        <label for="AssignmentDescription">Description:</label>
+                        <InputText class="form-control" id="AssignmentDescription" @bind-Value="workitemEdit.Description" />
+                        <ValidationMessage For="@(() => workitemEdit.Description)" />
+                        @if (string.IsNullOrWhiteSpace(workitemEdit.Description))
+                        {
+                            <div class="text-danger">Description is required.</div>
+                        }
+                    </div>
+                    <div class="form-group">
+                        <label for="AssignmentDeadLine">Deadline:</label>
+                        <InputDate class="form-control" id="AssignmentDeadLine" @bind-Value="workitemEdit.DeadLine" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="UserId">User:</label>
+                        <InputSelect class="form-control" id="UserId" @bind-Value="selectedUserId">
+                            @if (users != null)
+                            {
+                                foreach (var user in users)
+                                {
+                                    <option value="@user.UserId">@String.Concat(user.Firstname, " ", user.Lastname)</option>
+                                }
+                            }
+                        </InputSelect>
+
+                    </div>
+
+                    <div class="modal-footer d-flex justify-content-center" style="height: 60px;">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                        <button type="button" class="btn btn-warning" @onclick="SaveProduct">Update</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private WorkItemEditDTO workitemEdit;
+    private WorkItemInfoDTO workitemIntfo;
+    private IEnumerable<UserInfoDTO> users;
+    private string selectedUserId;
+
+    [Parameter] public int WorkItemId { get; set; }
+    [Parameter] public bool IsOpenEdit { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenEditChanged { get; set; }
+    [Parameter] public EventCallback<bool> OnInitialized { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        workitemEdit = await HttpClient.GetFromJsonAsync<WorkItemInfoDTO>($"api/workitem/{WorkItemId}");
+        if (workitemEdit != null && workitemEdit.BoardId != null)
+        {
+            users = await HttpClient.GetFromJsonAsync<IEnumerable<UserInfoDTO>>(($"api/getAllUserForProject/{workitemEdit.ProjectId}");
+            selectedUserId = workitemEdit.UserId ?? string.Empty; // Ensure selectedUserId is not null
+        }
+    }
+
+    private void CloseModal()
+    {
+        IsOpenEdit = false;
+        IsOpenEditChanged.InvokeAsync(false);
+    }
+
+    private async Task SaveProduct()
+    {
+        workitemEdit.UserId = selectedUserId;
+
+        if (validationResult.IsValid)
+        {
+            await HttpClient.UpdateAssignmentAsync(AssignmentId, workitemEdit);
+            StateHasChanged();
+            await OnInitialized.InvokeAsync();
+            CloseModal();
+        }
+    }
+} *@

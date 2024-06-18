@@ -4,6 +4,10 @@ using Smart.Core.Entities;
 using Smart.Core.Interfaces.Repository;
 using Smart.Core.Interfaces.Services;
 using Smart.Shared.DTOs.TaskDTO;
+using Smart.Shared.Helpers.Enums;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Smart.Core.Services
 {
@@ -33,8 +37,8 @@ namespace Smart.Core.Services
                 throw new Exception("User not found.");
 
             var workItem = _mapper.Map<WorkItem>(workItemDto);
-            workItem.CreatedByUser = user;
-            workItem.AssignedUser = user;
+            workItem.CreatedByUserId = userId;
+            workItem.AssignedUserId = userId;
             workItem.StartDate = DateTime.Now;
             workItem.Procent = 0;
 
@@ -59,9 +63,9 @@ namespace Smart.Core.Services
             return _mapper.Map<IEnumerable<WorkItemInfoDTO>>(workItems);
         }
 
-        public async Task UpdateWorkItemAsync(WorkItemInfoDTO workItemDto)
+        public async Task UpdateWorkItemAsync(WorkItemInfoDTO workItemDto, int workItemId)
         {
-            var workItem = await _workItemRepository.GetByKeyAsync(workItemDto.WorkItemId);
+            var workItem = await _workItemRepository.GetByKeyAsync(workItemId);
             if (workItem == null)
                 throw new Exception("Work item not found.");
 
@@ -70,7 +74,27 @@ namespace Smart.Core.Services
             await _workItemRepository.UpdateAsync(workItem);
             await _workItemRepository.SaveChangesAsync();
         }
+        public async Task UpdateWorkItemProgressAsync(int workItemId, int progress)
+        {
+            var workItem = await _workItemRepository.GetByKeyAsync(workItemId);
+            if (workItem == null)
+                throw new Exception("Work item not found.");
 
+            workItem.Procent = progress;
+            await _workItemRepository.UpdateAsync(workItem);
+            await _workItemRepository.SaveChangesAsync();   
+        }
+
+        public async Task UpdateWorkItemStatusAsync(int workItemId, WorkItemStatus status)
+        {
+            var workItem = await _workItemRepository.GetByKeyAsync(workItemId);
+            if (workItem == null)
+                throw new Exception("Work item not found.");
+
+            workItem.Status = status;
+            await _workItemRepository.UpdateAsync(workItem);
+            await _workItemRepository.SaveChangesAsync();
+        }
         public async Task DeleteWorkItemAsync(int workItemId)
         {
             var workItem = await _workItemRepository.GetByKeyAsync(workItemId);

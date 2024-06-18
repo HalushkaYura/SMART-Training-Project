@@ -1,4 +1,4 @@
-﻿@page "/add-work-item/{ProjectId:int}"
+﻿@page "/addWorkItem/{ProjectId:int}"
 @using Smart.Shared.DTOs.ProjectDTO
 @using Smart.Shared.Helpers.Enums
 @using Smart.Shared.DTOs.TaskDTO
@@ -37,8 +37,11 @@
                 <RadzenLabel Text="Status" Component="Status" style="width: 100%" />
             </RadzenColumn>
             <RadzenColumn SizeMD="9">
-                <RadzenDropDown Data="@(Enum.GetValues(typeof(WorkItemStatus)).Cast<WorkItemStatus>().Select(status => new { Value = status.ToString(), Name = status.ToString() }))" TextProperty="Name" ValueProperty="Value" AllowClear=true
-                                Placeholder="Choose Status" style="display: block; width: 100%" @bind-Value="@workItem.Status" Name="Status" />
+                <RadzenDropDown Data="@(Enum.GetValues(typeof(WorkItemStatus)).Cast<WorkItemStatus>().Select(status => new { Value = status, Name = status.ToString() }))"
+                                TextProperty="Name"
+                                ValueProperty="Value"
+                                Placeholder="Choose Status"
+                                @bind-Value="@workItem.Status" />
                 <RadzenRequiredValidator Component="Status" Text="Status is required" />
             </RadzenColumn>
         </RadzenRow>
@@ -48,9 +51,12 @@
                 <RadzenLabel Text="Priority" Component="Priority" style="width: 100%" />
             </RadzenColumn>
             <RadzenColumn SizeMD="9">
-                <RadzenDropDown Data="@(Enum.GetValues(typeof(WorkItemPriority)).Cast<WorkItemPriority>().Select(priority => new { Value = priority.ToString(), Name = priority.ToString() }))" TextProperty="Name" ValueProperty="Value" AllowClear=true
-                                Placeholder="Choose Priority" style="display: block; width: 100%" @bind-Value="@workItem.Priority" Name="Priority" />
-                                <RadzenRequiredValidator Component="Priority" Text="Priority is required" />
+                <RadzenDropDown Data="@(Enum.GetValues(typeof(WorkItemPriority)).Cast<WorkItemPriority>().Select(priority => new { Value = priority, Name = priority.ToString() }))"
+                                TextProperty="Name"
+                                ValueProperty="Value"
+                                Placeholder="Choose Priority"
+                                @bind-Value="@workItem.Priority" />
+                <RadzenRequiredValidator Component="Priority" Text="Priority is required" />
             </RadzenColumn>
         </RadzenRow>
 
@@ -78,8 +84,8 @@
 
     protected bool errorVisible;
     protected WorkItemCreateDTO workItem;
-    protected List<ProjectInfoDTO> projects;
-    protected List<ProjectDetailsDTO> users;
+    protected ProjectInfoDTO projects;
+    protected ProjectDetailsDTO users;
 
     protected override async Task OnInitializedAsync()
     {
@@ -88,15 +94,15 @@
                 ProjectId = ProjectId,
             };
 
-        projects = await HttpClient.GetFromJsonAsync<List<ProjectInfoDTO>>($"api/project/info/{ProjectId}");
-        users = await HttpClient.GetFromJsonAsync<List<ProjectDetailsDTO>>($"api/project/details/{ProjectId}");
+        projects = await HttpClient.GetFromJsonAsync<ProjectInfoDTO>($"api/project/info/{ProjectId}");
+        users = await HttpClient.GetFromJsonAsync<ProjectDetailsDTO>($"api/project/details/{ProjectId}");
     }
 
     protected async Task FormSubmit()
     {
         try
         {
-            Console.WriteLine($"Status: {workItem.Status}, Priority: {workItem.Priority}");
+            // Console.WriteLine($"Status: {workItem.Status}, Priority: {workItem.Priority}");
 
             var response = await HttpClient.PostAsJsonAsync("api/workitem/createWorkItem", workItem);
             if (response.IsSuccessStatusCode)

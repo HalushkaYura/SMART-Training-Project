@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Smart.Core.Interfaces.Services;
 using Smart.Shared.DTOs.TaskDTO;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace Smart.ServerSide.Controllers
 {
@@ -19,7 +20,7 @@ namespace Smart.ServerSide.Controllers
         }
 
         [Authorize]
-        [HttpPost("createWorkItem")]
+        [HttpPost("create")]
         public async Task<IActionResult> CreateWorkItem([FromBody] WorkItemCreateDTO workItemDto)
         {
             var workItemInfo = await _workItemService.CreateWorkItemAsync(workItemDto, UserId);
@@ -43,10 +44,25 @@ namespace Smart.ServerSide.Controllers
         }
 
         [Authorize]
-        [HttpPut ("editWorkItem")]
-        public async Task<IActionResult> UpdateWorkItem([FromBody] WorkItemInfoDTO workItemDto)
+        [HttpPut("edit/{workItemId}")]
+        public async Task<IActionResult> UpdateWorkItem([FromBody] WorkItemInfoDTO workItemDto, int workItemId)
         {
-            await _workItemService.UpdateWorkItemAsync(workItemDto);
+            await _workItemService.UpdateWorkItemAsync(workItemDto, workItemId);
+            return Ok();
+        }
+        [Authorize]
+        [HttpPut("update-progress/{workItemId}")]
+        public async Task<IActionResult> UpdateWorkItemProgress(int workItemId, [FromBody] WorkItemUpdateProgressDTO updateProgressDto)
+        {
+            await _workItemService.UpdateWorkItemProgressAsync(workItemId, updateProgressDto.Progress);
+            return Ok();
+        }
+
+        [Authorize]
+        [HttpPut("update-status/{workItemId}")]
+        public async Task<IActionResult> UpdateWorkItemStatus(int workItemId, [FromBody] WorkItemUpdateStatusDTO updateStatusDto)
+        {
+            await _workItemService.UpdateWorkItemStatusAsync(workItemId, updateStatusDto.Status);
             return Ok();
         }
 

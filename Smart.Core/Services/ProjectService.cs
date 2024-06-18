@@ -9,7 +9,6 @@ using Smart.Core.Resources;
 using Smart.Shared.DTOs.ProjectDTO;
 using System.Data;
 
-
 namespace Smart.Core.Services
 {
     public class ProjectService : IProjectService
@@ -21,7 +20,7 @@ namespace Smart.Core.Services
         protected readonly IRepository<UserProject> _userProjectRepository;
         protected readonly IRepository<User> _userRepository;
         protected readonly IRepository<Chat> _chatRepository;
-        //protected readonly INotificationService _notificationService;
+
         public ProjectService(
             IMapper mapper,
             IHttpContextAccessor httpContextAccessor,
@@ -39,7 +38,6 @@ namespace Smart.Core.Services
             _userRepository = userRepository;
             _chatRepository = chatRepository;
         }
-
 
         public async Task<ProjectIdDTO> CreateNewProjectAsync(ProjectCreateDTO projectDTO, string userId)
         {
@@ -59,25 +57,22 @@ namespace Smart.Core.Services
                 {
                     Name = projectDTO.Name,
                     Description = projectDTO.Description,
-                    StartDate = DateTime.Now, 
+                    StartDate = DateTime.Now,
                     CreatedByUserId = userId,
                     IsPublic = false
                 };
                 await _projectRepository.AddAsync(project);
                 await _projectRepository.SaveChangesAsync();
                 await CreateUserProject(userId, project.ProjectId, true);
-                
+
                 var chat = new Chat
-                { 
+                {
                     ProjectId = project.ProjectId,
                     CreatedDate = DateTime.Now,
 
                 };
                 await _chatRepository.AddAsync(chat);
                 await _chatRepository.SaveChangesAsync();
-
-
-
 
                 return new ProjectIdDTO { ProjectId = project.ProjectId };
             }
@@ -97,11 +92,9 @@ namespace Smart.Core.Services
             var existingUserProject = await _userProjectRepository.GetListAsync(up => up.UserId == userId && up.ProjectId == projectId);
             if (existingUserProject.Any())
                 throw new HttpException(System.Net.HttpStatusCode.BadRequest, "User is already a member of this project.");
-           
+
             await CreateUserProject(userId, projectId, false);
-
         }
-
 
         private async Task CreateUserProject(string userId, int projectId, bool isOwner)
         {
@@ -144,18 +137,20 @@ namespace Smart.Core.Services
             return projectInfo;
         }
 
-        public async Task EditProjectDateAsync(ProjectEditDTO projectEditDTO, int projectId, string userId)
+        public async Task<string> EditProjectDateAsync(ProjectEditDTO projectEditDTO, int projectId, string userId)
         {
             var project = await _projectRepository.GetByKeyAsync(projectId);
 
             if (project == null)
                 throw new HttpException(System.Net.HttpStatusCode.BadRequest, ErrorMessages.ProjectNotFound);
 
-            project.Name = projectEditDTO.Name;
+            project = _mapper.Map<Project>(projectEditDTO);
 
             await _projectRepository.UpdateAsync(project);
             await _projectRepository.SaveChangesAsync();
 
+            var inviteLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/invite?token={projectEditDTO.InviteToken}";
+            return inviteLink;
         }
 
         public async Task<IEnumerable<ProjectForUserDTO>> GetProjectsOwnedByUserAsync(string userId)
@@ -167,7 +162,6 @@ namespace Smart.Core.Services
             var projects = await _projectRepository.GetListAsync(p => projectIds.Contains(p.ProjectId));
 
             var projectDtos = _mapper.Map<IEnumerable<ProjectForUserDTO>>(projects);
-            
 
             return projectDtos;
         }
@@ -184,6 +178,7 @@ namespace Smart.Core.Services
 
             return projectDtos;
         }
+
         public async Task<ProjectDetailsDTO> GetProjectDetailsAsync(int projectId, string userId)
         {
             var userProjectTest = await _userProjectRepository.GetEntityAsync(x => x.UserId == userId && x.ProjectId == projectId);
@@ -205,10 +200,7 @@ namespace Smart.Core.Services
 
             for (var i = 0; i < memberDTOs.Count; i++)
             {
-                // Знаходимо відповідність між об'єктами за Id
                 var userDTO = usersDTO.FirstOrDefault(u => u.UserId == userProjects.ElementAt(i).UserId);
-
-                // Просто присвоюємо значення з мапованих об'єктів
                 memberDTOs[i].UserName = userDTO.UserName;
                 memberDTOs[i].ImageUrl = userDTO.ImageUrl;
             }
@@ -218,6 +210,7 @@ namespace Smart.Core.Services
 
             return projectDTO;
         }
+
         public async Task DeleteProjectAsync(int projectId, string userId)
         {
             var project = await _projectRepository.GetByKeyAsync(projectId);
@@ -231,17 +224,16 @@ namespace Smart.Core.Services
             await _projectRepository.DeleteAsync(project);
             await _projectRepository.SaveChangesAsync();
         }
+
         public async Task LeaveTheProjectAsync(int projectId, string userId)
         {
-
             var project = await _projectRepository.GetByKeyAsync(projectId);
             if (project == null)
                 throw new HttpException(System.Net.HttpStatusCode.BadRequest, ErrorMessages.ProjectNotFound);
-            var userProject = await _userProjectRepository.GetEntityAsync(x => x.UserId == userId && x.ProjectId == projectId);
 
+            var userProject = await _userProjectRepository.GetEntityAsync(x => x.UserId == userId && x.ProjectId == projectId);
             if (userProject == null || userProject.IsOwner == true)
                 throw new HttpException(System.Net.HttpStatusCode.BadRequest, "Impossible action");
-
 
             await _userProjectRepository.DeleteAsync(userProject);
             await _userProjectRepository.SaveChangesAsync();
@@ -252,11 +244,11 @@ namespace Smart.Core.Services
             var userProject = await _userProjectRepository.GetEntityAsync(x => x.UserId == userActive && x.ProjectId == projectId);
             if (userProject.IsOwner != true)
                 throw new HttpException(System.Net.HttpStatusCode.BadRequest, "Not enough rights");
+
             var userProjectDelete = await _userProjectRepository.GetEntityAsync(x => x.UserId == userId && x.ProjectId == projectId);
 
             await _userProjectRepository.DeleteAsync(userProjectDelete);
             await _userProjectRepository.SaveChangesAsync();
         }
-
     }
 }

@@ -14,6 +14,7 @@ namespace Smart.Core.Interfaces.Services
         Task SendTwoFactorCodeAsync(string userId);
         Task SetPasswordAsync(string userId, UserSetPasswordDTO userSetPasswordDTO);
         Task<bool> IsHavePasswordAsync(string userId);
+        Task<IEnumerable<UserInfoDTO>> GetAllUserProjectAsync(int projectId);
 
         //----------------------------------------------------------
         Task UploadAvatar(UserImageUploadDTO imageDTO, string userId);

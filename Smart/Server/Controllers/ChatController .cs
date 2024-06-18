@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Smart.Core.Interfaces.Services;
 using Smart.Shared.DTOs.ChatDTO;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Smart.Server.Controllers
 {
@@ -16,36 +18,18 @@ namespace Smart.Server.Controllers
             _chatService = chatService;
         }
 
-        [HttpGet("project/{projectId}")]
-        public async Task<ActionResult<ChatDTO>> GetChatByProjectId(int projectId)
+        [HttpGet("{projectId}")]
+        public async Task<IActionResult> GetChatMessages(int projectId)
         {
-            var chat = await _chatService.GetChatByProjectIdAsync(projectId);
-            if (chat == null)
-                return NotFound();
-
-            return Ok(chat);
+            var chatMessages = await _chatService.GetChatMessages(projectId);
+            return Ok(chatMessages);
         }
 
-        [HttpPost("project/{projectId}")]
-        public async Task<ActionResult<ChatDTO>> CreateChat(int projectId)
+        [HttpPost]
+        public async Task<IActionResult> SendMessage([FromBody] SendMessageDto messageDto)
         {
-            var chat = await _chatService.CreateChatAsync(projectId);
-            return CreatedAtAction(nameof(GetChatByProjectId), new { projectId = chat.ProjectId }, chat);
-        }
-
-        [HttpPost("message")]
-        public async Task<ActionResult<ChatMessageDTO>> AddMessage([FromBody] ChatMessageCreateDTO messageDto)
-        {
-            var message = await _chatService.AddMessageAsync(messageDto);
-            return CreatedAtAction(nameof(GetMessagesByChatId), new { chatId = message.ChatId }, message);
-        }
-
-
-        [HttpGet("{chatId}/messages")]
-        public async Task<ActionResult<IEnumerable<ChatMessageDTO>>> GetMessagesByChatId(int chatId)
-        {
-            var messages = await _chatService.GetMessagesByChatIdAsync(chatId);
-            return Ok(messages);
+            await _chatService.SendMessage(messageDto.UserId, messageDto.ProjectId, messageDto.Message);
+            return Ok();
         }
     }
-}
+        }

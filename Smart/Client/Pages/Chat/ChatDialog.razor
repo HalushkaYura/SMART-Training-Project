@@ -1,135 +1,100 @@
-﻿@page "/chatdialog"
-@using Smart.Shared.DTOs
+﻿@page "/chatdialog/{ProjectId:int}"
 @using Smart.Shared.DTOs.ChatDTO
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 @inject DialogService DialogService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
+<PageTitle>Chat</PageTitle>
 
-
-
-
-
-
-
-
-
-@*     <RadzenCard>
-        <RadzenHeading Size="H3">Chat</RadzenHeading>
-        <div class="chat-messages">
-            @if (messages != null && messages.Any())
+<RadzenCard>
+    <RadzenHeading Size="H3">Chat</RadzenHeading>
+    <div class="chat-messages">
+        @if (messages != null && messages.Any())
+        {
+            @foreach (var message in messages)
             {
-                @foreach (var message in messages)
-                {
-                    <div class="message @(message.UserId == userId ? "my-message" : "their-message")">
-                        <strong>@message.UserId:</strong> @message.Content
-                    </div>
-                }
+                <div class="message @(message.UserId == userId ? "my-message" : "their-message")">
+                    <strong>@message.UserId:</strong> @message.Content
+                </div>
             }
-            else
-            {
-                <div>No messages available.</div>
-            }
-        </div>
-        <div class="chat-input">
-            <RadzenTextBox @bind-Value="newMessage" Style="width: 100%;" Placeholder="Type a message..." />
-            <RadzenButton Click="@(async () => await SendMessage())" Icon="send" Style="margin-left: 10px;" />
-        </div>
-</RadzenCard> *@
+        }
+        else
+        {
+            <div>No messages available.</div>
+        }
+    </div>
+    <div class="chat-input">
+        <RadzenTextBox @bind-Value="chatMessageDTO.Content" Style="width: 100%;" Placeholder="Type a message..." />
+        <RadzenButton Click="@(async () => await SendMessage())" Icon="send" Style="margin-left: 10px;" />
+    </div>
+</RadzenCard>
 
-            @if (IsConnected)
-            {
-                <input type=" text" @bind="userId" />
-                <input type=" text" @bind="newMessage" />
-                <button @onclick="Send"> Send </button>
-
-                <ul id="messageList">
-                    @foreach (var message in messages)
-                    {
-                        <li>
-                            @message
-                        </li>
-                    }
-                </ul>
-            }
-            else
-            {
-                <span>
-                    Connecting....
-                </span>
-            }
 @code {
     [Parameter] public int ProjectId { get; set; }
 
     private HubConnection hubConnection;
-    private List<string> messages = new List<string>();
-    private string newMessage;
+    private List<ChatMessageDTO> messages = new List<ChatMessageDTO>();
+    private ChatMessageDTO chatMessageDTO = new ChatMessageDTO();
     private string userId;
 
     protected override async Task OnInitializedAsync()
     {
-        hubConnection = new HubConnectionBuilder()
-        .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
-        .Build();
-
-        hubConnection.On<string, string>("ReceiveMessage", (user, message) =>
-    {
-        var encodedMsg = $"{user}: {message}";
-        messages.Add(encodedMsg);
-        StateHasChanged();
-    });
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         userId = user.Identity.Name;
 
+        chatMessageDTO.UserId = userId;
+        chatMessageDTO.ChatId = ProjectId;
+
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
+            .Build();
+
+        hubConnection.On<ChatMessageDTO>("ReceiveMessage", (message) =>
+        {
+            messages.Add(message);
+            StateHasChanged();
+        });
+
+        await LoadMessages();
+
         await hubConnection.StartAsync();
-        // await LoadMessages();
     }
+
+    private async Task LoadMessages()
+    {
+        messages = await HttpClient.GetFromJsonAsync<List<ChatMessageDTO>>($"/api/chat/{ProjectId}/messages");
+    }
+
     public bool IsConnected => hubConnection.State == HubConnectionState.Connected;
 
-    Task Send() => hubConnection.SendAsync("SendMessage", userId, newMessage);
+    private async Task SendMessage()
+    {
+        if (!string.IsNullOrEmpty(chatMessageDTO.Content))
+        {
+            var response = await HttpClient.PostAsJsonAsync("/api/chat/message", new ChatMessageCreateDTO
+                {
+                    ChatId = chatMessageDTO.ChatId,
+                    UserId = chatMessageDTO.UserId,
+                    Content = chatMessageDTO.Content
+                });
 
-    // private async Task LoadMessages()
-    // {
-    //     try
-    //     {
-    //         // messages = await HttpClient.GetFromJsonAsync<List<ChatMessageDTO>>($"api/chat/{ProjectId}/messages");
-    //         Console.WriteLine($"Loaded {messages.Count} messages.");
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         // Handle the exception or log it
-    //         Console.WriteLine($"Error loading messages: {ex.Message}");
-    //     }
-    // }
-
-    // private async Task SendMessage()
-    // {
-    //     if (!string.IsNullOrWhiteSpace(newMessage))
-    //     {
-    //         var messageDto = new ChatMessageCreateDTO
-    //             {
-    //                 ChatId = ProjectId, // Assuming chatId is the same as projectId
-    //                 UserId = userId,
-    //                 Content = newMessage
-    //             };
-
-    //         try
-    //         {
-    //             var response = await HttpClient.PostAsJsonAsync("api/chat/message", messageDto);
-    //             response.EnsureSuccessStatusCode();
-    //             newMessage = string.Empty;
-
-    //             // Reload messages to ensure the new message is displayed
-    //             await LoadMessages();
-    //             StateHasChanged();
-    //         }
-    //         catch (Exception ex)
-    //         {
-    //             // Handle the exception or log it
-    //             Console.WriteLine($"Error sending message: {ex.Message}");
-    //         }
-    //     }
+            if (response.IsSuccessStatusCode)
+            {
+                var newMessage = await response.Content.ReadFromJsonAsync<ChatMessageDTO>();
+                await hubConnection.SendAsync("SendMessage", newMessage);
+                chatMessageDTO.Content = string.Empty;
+            }
+            else
+            {
+                Console.Error.WriteLine("Failed to send message: " + response.StatusCode);
+            }
+        }
     }
 
+    public void Dispose()
+    {
+        _ = hubConnection.DisposeAsync();
+    }
+}

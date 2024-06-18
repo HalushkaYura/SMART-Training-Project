@@ -1,0 +1,51 @@
+﻿@page "/invite/{ProjectId:int}/{InviteToken}"
+@using System.Security.Claims
+@using Smart.Shared.DTOs.ProjectDTO
+@inject Microsoft.AspNetCore.Components.NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient HttpClient
+
+<h3>Invite</h3>
+<div>
+    Запрошення до проекту.
+</div>
+<div>
+    <button @onclick="InviteTo" class="btn btn-outline-success">Прийняти</button>
+    <button @onclick="Cancel" class="btn btn-outline-danger">Скасувати</button>
+</div>
+
+@code {
+    [Parameter] public int ProjectId { get; set; }
+    [Parameter] public string InviteToken { get; set; }
+
+    private async Task InviteTo()
+    {
+        var project = await HttpClient.GetFromJsonAsync<ProjectInfoDTO>($"api/project/details/{ProjectId}");
+        if (project.InviteToken == InviteToken)
+        {
+            var response = await HttpClient.PostAsync($"api/project/add-member/{ProjectId}", null);
+            if (response.IsSuccessStatusCode)
+            {
+                NavigationManager.NavigateTo("/boards");
+            }
+            else
+            {
+                // Обробка помилок
+            }
+        }
+        else
+        {
+            // Обробка некоректного запрошення
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+    private async Task<string> GetUserIdAsync()
+    {
+        return  await HttpClient.GetStringAsync("api/auth/UserIdAuthenticated");
+    }
+}

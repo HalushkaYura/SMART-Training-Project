@@ -1,11 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Smart.Core.Entities;
-using Smart.Shared.DTOs.TaskDTO;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Smart.Shared.DTOs.TaskDTO;
+using Smart.Shared.Helpers.Enums;
 
 namespace Smart.Core.Interfaces.Services
 {
@@ -14,8 +8,10 @@ namespace Smart.Core.Interfaces.Services
         Task<WorkItemInfoDTO> CreateWorkItemAsync(WorkItemCreateDTO workItemDto, string userId);
         Task<WorkItemInfoDTO> GetWorkItemByIdAsync(int workItemId);
         Task<IEnumerable<WorkItemInfoDTO>> GetWorkItemsByProjectIdAsync(int projectId);
-        Task UpdateWorkItemAsync(WorkItemInfoDTO workItemDto);
+        Task UpdateWorkItemAsync(WorkItemInfoDTO workItemDto, int workItemId);
         Task DeleteWorkItemAsync(int workItemId);
+        Task UpdateWorkItemProgressAsync(int workItemId, int progress);
+        Task UpdateWorkItemStatusAsync(int workItemId, WorkItemStatus status);
 
     }
 }

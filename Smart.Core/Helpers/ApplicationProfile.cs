@@ -17,7 +17,8 @@ namespace Smart.Core.Helpers
 
             CreateMap<ProjectCreateDTO, Project>().ReverseMap();
             CreateMap<Project, ProjectInfoDTO>().ReverseMap();
-            CreateMap<Project, ProjectEditDTO>();
+
+            CreateMap<Project, ProjectEditDTO>().ReverseMap();
 
 
             CreateMap<ProjectForUserDTO, Project>().ReverseMap();

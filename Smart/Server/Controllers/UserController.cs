@@ -62,7 +62,14 @@ namespace Smart.Server.Controllers
             var imageUrl = await _userService.GetUserImageAsync(email);
             return Ok(imageUrl);
         }
-
+        [Authorize]
+        [HttpGet]
+        [Route("getAllUserForProject/{projectId}")]
+        public async Task<IActionResult> GetUserImage(int projectId)
+        {
+            var userForProject = await _userService.GetAllUserProjectAsync(projectId);
+            return Ok(userForProject);
+        }
         [Authorize]
         [HttpDelete]
         [Route("delete")]

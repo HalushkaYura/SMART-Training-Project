@@ -8,15 +8,16 @@
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 @inject DialogService DialogService
+@inject IJSRuntime JSRuntime
 
 <RadzenContent Container="main">
     <div class="project-header">
         <div class="project-title-section">
             <RadzenHeading Size="H2" Text="@project.Name" @onclick="EditProjectName" />
             <div class="header-icons">
-                <span class="icon align-content-center" @onclick="OpenParticipantsDialog">Members <RadzenIcon Icon="group" /></span>
+                <span class="icon align-content-center" @onclick="OpenParticipantsDialog"> Members <RadzenIcon Icon="group" /></span>
                 <span class="icon" @onclick="ToggleProjectPrivacy">
-                    @if (project.IsPublic || project.IsPublic==null)
+                    @if (project.IsPublic || project.IsPublic == null)
                     {
                         <RadzenIcon Icon="lock_open" />
                     }
@@ -38,7 +39,6 @@
             <span class="icon" @onclick="OpenAddParticipantDialog"><RadzenIcon Icon="person_add" /></span>
         </div>
     </div>
-
     <div class="task-board">
         @foreach (var status in Enum.GetValues(typeof(WorkItemStatus)).Cast<WorkItemStatus>())
         {
@@ -46,13 +46,26 @@
                 <div class="column-header">
                     <RadzenHeading Size="H4" Text="@status.ToString()" />
                 </div>
-                <div class="task-list">
+                <div class="task-list" data-status="@status">
                     @foreach (var task in tasks.Where(t => t.Status == status))
                     {
-                        <div class="task-card" @onclick="() => NavigateToTaskPage(task.WorkItemId)">
-                            <div class="task-title">@task.Name</div>
-                            <div class="task-description">@task.Description</div>
-                            <div class="task-priority">@task.Priority</div>
+                        <div class="task-card @GetPriorityClass(task.Priority)" data-task-id="@task.WorkItemId">
+                            <div class="task-header">
+                                <div class="task-title">@task.Name</div>
+                                <RadzenIcon Icon="edit" class="edit-icon" @onclick="@(async () => OpenEditTaskDialogPage(task.WorkItemId))" />
+                            </div>
+                            <div class="task-description"> @task.Description </div>
+                            <div class="task-priority"> @task.Priority </div>
+                            <input type="range" min="0" max="100" value="@task.Procent" @onchange="@(async (ChangeEventArgs e) => await UpdateTaskProgress(task.WorkItemId, int.Parse(e.Value.ToString())))" />
+                            <div> @task.Procent %</div>
+                            @if (task.Status == WorkItemStatus.OnHold)
+                            {
+                                <button @onclick="@(async () => await UpdateTaskStatus(task.WorkItemId, WorkItemStatus.Completed))">Complete</button>
+                            }
+                            else if (task.Status == WorkItemStatus.Completed)
+                            {
+                                <button @onclick="@(async () => await DeleteTask(task.WorkItemId))">Close</button>
+                            }
                         </div>
                     }
                 </div>
@@ -60,8 +73,12 @@
         }
     </div>
 
-    <RadzenIcon Icon="chat" class="chat" Style="position: fixed; bottom: 20px; right: 20px; color:white " onclick="@OpenChatDialog" />
+    <RadzenIcon Icon="chat" class="chat" Style="position: fixed; bottom: 20px; right: 20px; color:white " @onclick="OpenChatDialog" />
 </RadzenContent>
+@if (IsConfirmDeleteProjectOpen)
+{
+    <ConfirmDelete IsOpenDelete="true" OnDeleteConfirmed="OnDeleteProjectConfirmed" />
+}
 
 @code {
     [Parameter]
@@ -70,7 +87,9 @@
     private List<WorkItemInfoDTO> tasks = new List<WorkItemInfoDTO>();
     private bool isEditingName = false;
     private string InviteLink { get; set; }
-
+    private bool IsConfirmDeleteOpen { get; set; }
+    private bool IsConfirmDeleteProjectOpen { get; set; }
+    private int projectIdToAction;
     private bool newTaskDialogOpen = false;
     private bool chatDialogOpen = false;
     private bool addParticipantDialogOpen = false;
@@ -79,6 +98,22 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadProjectData();
+    }
+
+    private async Task OnDeleteProjectConfirmed(bool confirmed)
+    {
+        if (confirmed)
+        {
+            await HttpClient.DeleteAsync($"api/project/{ProjectId}");
+            NavigationManager.NavigateTo("/projects");
+        }
+        IsConfirmDeleteProjectOpen = false;
+    }
+
+    private void ShowConfirmDeleteAssignment(int projectId)
+    {
+        projectIdToAction = projectId;
+        IsConfirmDeleteProjectOpen = true;
     }
 
     protected override async Task OnParametersSetAsync()
@@ -109,27 +144,36 @@
         DialogService.Open<ChatDialog>($"Chat", new Dictionary<string, object> { { "ProjectId", ProjectId } });
     }
 
-    private void OpenAddParticipantDialog()
+    private async Task OpenAddParticipantDialog()
     {
         addParticipantDialogOpen = true;
         DialogService.Open<AddParticipant>($"Add Participant", new Dictionary<string, object> { { "ProjectId", ProjectId } });
+        await LoadProjectData();
+
     }
 
-    private void OpenParticipantsDialog()
+    private async Task OpenParticipantsDialog()
     {
         participantsDialogOpen = true;
         DialogService.Open<ViewParticipants>($"Participants", new Dictionary<string, object> { { "ProjectId", ProjectId } });
+        await LoadProjectData();
+
     }
 
-    private void ToggleProjectPrivacy()
+    private async Task ToggleProjectPrivacy()
     {
         project.IsPublic = !project.IsPublic;
+        await HttpClient.PutAsJsonAsync($"api/project/{ProjectId}/toggle-privacy", project);
+        await LoadProjectData();
+
     }
 
     private async Task SaveProjectName()
     {
         isEditingName = false;
-        await HttpClient.PutAsJsonAsync($"api/project/{ProjectId}", project);
+        await HttpClient.PutAsJsonAsync<ProjectInfoDTO>($"api/project/{ProjectId}", project);
+        await LoadProjectData();
+
     }
 
     private void EditProjectName()
@@ -137,11 +181,89 @@
         isEditingName = true;
     }
 
-    private void CopyProjectLink()
+    private async Task CopyProjectLink()
     {
-        // project.InviteToken = Guid.NewGuid().ToString();
-        // await HttpClient.PutAsJsonAsync($"api/project/{ProjectId}", project);
-        // InviteLink = $"{NavigationManager.BaseUri}invite/{Board.Id}/{Board.InviteToken}";
-        // await JSRuntime.InvokeVoidAsync("copyTextToClipboard", InviteLink);
+        try
+        {
+            string inviteToken = Guid.NewGuid().ToString();
+            ProjectEditDTO projectInvite = new ProjectEditDTO
+                {
+                    IsPublic = project.IsPublic,
+                    Name = project.Name,
+                    InviteToken = inviteToken
+                };
+
+            var response = await HttpClient.PutAsJsonAsync($"api/project/editProject/{ProjectId}", projectInvite);
+            var link = await response.Content.ReadAsStringAsync();
+            InviteLink = link.ToString();
+            await JSRuntime.InvokeVoidAsync("copyTextToClipboard", InviteLink);
+        }
+        catch (JSException jsEx)
+        {
+            Console.WriteLine($"Error copying text to clipboard: {jsEx.Message}");
+        }
+    }
+
+    private async Task UpdateTaskProgress(int workItemId, int progress)
+    {
+        var updateProgressDto = new WorkItemUpdateProgressDTO { Progress = progress };
+        await HttpClient.PutAsJsonAsync<WorkItemUpdateProgressDTO>($"api/workitem/update-progress/{workItemId}", updateProgressDto);
+        var task = tasks.FirstOrDefault(t => t.WorkItemId == workItemId);
+        if (task != null)
+        {
+            task.Procent = progress;
+            // Update task status based on progress
+            if (progress == 100)
+            {
+                await UpdateTaskStatus(workItemId, WorkItemStatus.OnHold);
+            }
+            else if (progress > 0 && progress < 100)
+            {
+                await UpdateTaskStatus(workItemId, WorkItemStatus.InProgress);
+            }
+            else
+            {
+                await UpdateTaskStatus(workItemId, WorkItemStatus.Open);
+            }
+        }
+    }
+
+    private async Task UpdateTaskStatus(int workItemId, WorkItemStatus newStatus)
+    {
+        var updateStatusDto = new WorkItemUpdateStatusDTO { Status = newStatus };
+        await HttpClient.PutAsJsonAsync<WorkItemUpdateStatusDTO>($"api/workitem/update-status/{workItemId}", updateStatusDto);
+        var task = tasks.FirstOrDefault(t => t.WorkItemId == workItemId);
+        if (task != null)
+        {
+            task.Status = newStatus;
+        }
+    }
+
+    private async Task DeleteTask(int workItemId)
+    {
+        await HttpClient.DeleteAsync($"api/workitem/{workItemId}");
+        tasks.RemoveAll(t => t.WorkItemId == workItemId);
+        await LoadProjectData();
+
+    }
+
+    private string GetPriorityClass(WorkItemPriority priority)
+    {
+        return priority switch
+        {
+            WorkItemPriority.Low => "priority-low",
+            WorkItemPriority.Medium => "priority-medium",
+            WorkItemPriority.High => "priority-high",
+            _ => string.Empty,
+        };
+    }
+
+    private async Task OpenEditTaskDialogPage(int workItemId)
+    {
+        newTaskDialogOpen = true;
+        DialogService.Open<WorkItemEdit>($"Edit Task", new Dictionary<string, object> { { "WorkItemId", workItemId } });
+        await LoadProjectData();
+
+        // NavigationManager.NavigateTo($"/editWorkItem/{workItemId}");
     }
 }

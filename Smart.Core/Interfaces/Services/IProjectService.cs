@@ -8,7 +8,7 @@ namespace Smart.Core.Interfaces.Services
     {
         Task<ProjectIdDTO> CreateNewProjectAsync(ProjectCreateDTO projectDTO, string userId);
         Task<ProjectInfoDTO> InfoFromProjectAsync(int projectId, string userId);
-        Task EditProjectDateAsync(ProjectEditDTO projectEditDTO, int projectId, string userId);
+        Task<string> EditProjectDateAsync(ProjectEditDTO projectEditDTO, int projectId, string userId);
         Task AddMemberToProjectAsync(string userId, int projectId);
         Task<IEnumerable<ProjectForUserDTO>> GetProjectsOwnedByUserAsync(string userId);
         Task<IEnumerable<ProjectForUserDTO>> GetProjectsUserIsMemberAsync(string userId);

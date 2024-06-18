@@ -6,7 +6,7 @@
         public string Name { get; set; }
         public bool? IsOwner { get; set; }
         public bool IsPublic { get; set; }
-        //public string? InviteLink {  get; set; }
+        public string? InviteToken {  get; set; }
         public string OwnerName { get; set; }
         public string OwnerURL { get; set; }
 

@@ -221,5 +221,14 @@ namespace Smart.Core.Services
             await _userManager.DeleteAsync(user);
         }
 
+        public async Task<IEnumerable<UserInfoDTO>> GetAllUserProjectAsync(int projectId)
+        {
+            var userProject = await _userProjectRepository.GetListAsync(bm => bm.ProjectId == projectId);
+
+            var users = userProject.Select(bm => bm.User);
+            var usersDTO = _mapper.Map<IEnumerable<UserInfoDTO>>(users);
+
+            return usersDTO;
+        }
     }
 }

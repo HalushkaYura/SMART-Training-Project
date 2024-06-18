@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Smart.Core.Interfaces.Services;
-using Smart.Core.Services;
 using Smart.Shared.DTOs.ProjectDTO;
 using System.Security.Claims;
 
@@ -12,17 +11,14 @@ namespace Smart.ServerSide.Controllers
     [ApiController]
     public class ProjectController : ControllerBase
     {
-        private readonly Core.Interfaces.Services.IProjectService _projectService;
+        private readonly IProjectService _projectService;
         private readonly IBackgroundJobClient _backgroundJobClient;
 
         private string UserId => User.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-        public ProjectController(
-            Core.Interfaces.Services.IProjectService projectService,
-            IBackgroundJobClient backgroundJobClient)
+        public ProjectController(IProjectService projectService, IBackgroundJobClient backgroundJobClient)
         {
             _projectService = projectService;
-            _backgroundJobClient = backgroundJobClient;
             _backgroundJobClient = backgroundJobClient;
         }
 
@@ -32,7 +28,6 @@ namespace Smart.ServerSide.Controllers
         public async Task<IActionResult> CreateProjectAsync([FromBody] ProjectCreateDTO projectCreateDTO)
         {
             var id = await _projectService.CreateNewProjectAsync(projectCreateDTO, UserId);
-
             return Ok(id);
         }
 
@@ -45,15 +40,12 @@ namespace Smart.ServerSide.Controllers
             return Ok();
         }
 
-
-
         [Authorize]
         [HttpGet]
         [Route("info/{projectId}")]
         public async Task<IActionResult> ProjectInfoAsync(int projectId)
         {
             var projectInfo = await _projectService.InfoFromProjectAsync(projectId, UserId);
-
             return Ok(projectInfo);
         }
 
@@ -62,9 +54,8 @@ namespace Smart.ServerSide.Controllers
         [Route("owner")]
         public async Task<IActionResult> GetProjectsOwnedByUserAsync()
         {
-            var project = await _projectService.GetProjectsOwnedByUserAsync(UserId);
-
-            return Ok(project);
+            var projects = await _projectService.GetProjectsOwnedByUserAsync(UserId);
+            return Ok(projects);
         }
 
         [Authorize]
@@ -72,9 +63,8 @@ namespace Smart.ServerSide.Controllers
         [Route("member")]
         public async Task<IActionResult> GetProjectsUserIsMemberAsync()
         {
-            var project = await _projectService.GetProjectsUserIsMemberAsync(UserId);
-
-            return Ok(project);
+            var projects = await _projectService.GetProjectsUserIsMemberAsync(UserId);
+            return Ok(projects);
         }
 
         [Authorize]
@@ -82,11 +72,9 @@ namespace Smart.ServerSide.Controllers
         [Route("editProject/{projectId}")]
         public async Task<IActionResult> EditProject([FromBody] ProjectEditDTO projectEditDTO, int projectId)
         {
-
-            await _projectService.EditProjectDateAsync(projectEditDTO, projectId, UserId);
-            return Ok();
+            var inviteLink = await _projectService.EditProjectDateAsync(projectEditDTO, projectId, UserId);
+            return Ok(new { InviteLink = inviteLink });
         }
-
 
         [Authorize]
         [HttpGet]
@@ -96,7 +84,6 @@ namespace Smart.ServerSide.Controllers
             var info = await _projectService.GetProjectDetailsAsync(projectId, UserId);
             return Ok(info);
         }
-
 
         [Authorize]
         [HttpDelete]
@@ -122,10 +109,7 @@ namespace Smart.ServerSide.Controllers
         public async Task<IActionResult> DeleteUserAccount(string userId, int projectId)
         {
             await _projectService.DeleteUserWithProject(userId, projectId, UserId);
-
             return Ok();
         }
-
-
     }
 }
