@@ -1,4 +1,5 @@
 ﻿@page "/editWorkItem/{WorkItemId:int}"
+@using Smart.Shared.DTOs.ProjectDTO
 @using Smart.Shared.Helpers.Enums
 @using Smart.Shared.DTOs.TaskDTO
 @inject NotificationService notificationService
@@ -46,7 +47,7 @@
                 <RadzenLabel Text="Assigned User" Component="AssignedUserId" Style="width: 100%" />
             </RadzenColumn>
             <RadzenColumn SizeMD="9">
-                <RadzenTextBox Style="display: block; width: 100%" @bind-Value="WorkItem.AssignedUserId" Name="AssignedUserId" />
+                <RadzenDropDown Data="@Users" TextProperty="UserName" ValueProperty="UserId" @bind-Value="WorkItem.AssignedUserId" Name="AssignedUserId" Style="width: 100%" />
             </RadzenColumn>
         </RadzenRow>
 
@@ -60,15 +61,18 @@
 @code {
     [Parameter]
     public int WorkItemId { get; set; }
-
+    [Parameter] public EventCallback<bool> OnInitialized { get; set; }
     protected bool errorVisible;
     protected WorkItemInfoDTO WorkItem { get; set; }
+    protected List<ProjectMemberDTO> Users { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             WorkItem = await HttpClient.GetFromJsonAsync<WorkItemInfoDTO>($"api/workitem/{WorkItemId}");
+            var project = await HttpClient.GetFromJsonAsync<ProjectDetailsDTO>($"api/project/details/{WorkItem.ProjectId}");
+            Users = project?.Members ?? new List<ProjectMemberDTO>();
         }
         catch (Exception)
         {
@@ -81,7 +85,9 @@
         try
         {
             await HttpClient.PutAsJsonAsync($"api/workitem/edit/{WorkItemId}", WorkItem);
+            await OnInitialized.InvokeAsync(true);
             dialogService.Close(WorkItem);
+
         }
         catch (Exception)
         {

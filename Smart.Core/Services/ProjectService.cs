@@ -144,12 +144,14 @@ namespace Smart.Core.Services
             if (project == null)
                 throw new HttpException(System.Net.HttpStatusCode.BadRequest, ErrorMessages.ProjectNotFound);
 
-            project = _mapper.Map<Project>(projectEditDTO);
+            project.IsPublic = projectEditDTO.IsPublic;
+            project.InviteToken = projectEditDTO.InviteToken;
+            project.Name = projectEditDTO.Name;
 
             await _projectRepository.UpdateAsync(project);
             await _projectRepository.SaveChangesAsync();
 
-            var inviteLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/invite?token={projectEditDTO.InviteToken}";
+            string inviteLink = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}/invite/{projectId}/{projectEditDTO.InviteToken}";
             return inviteLink;
         }
 

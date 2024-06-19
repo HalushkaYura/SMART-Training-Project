@@ -14,30 +14,39 @@
     <div class="project-header">
         <div class="project-title-section">
             <RadzenHeading Size="H2" Text="@project.Name" @onclick="EditProjectName" />
-            <div class="header-icons">
-                <span class="icon align-content-center" @onclick="OpenParticipantsDialog"> Members <RadzenIcon Icon="group" /></span>
-                <span class="icon" @onclick="ToggleProjectPrivacy">
-                    @if (project.IsPublic || project.IsPublic == null)
-                    {
-                        <RadzenIcon Icon="lock_open" />
-                    }
-                    else
-                    {
-                        <RadzenIcon Icon="lock" />
-                    }
-                </span>
-            </div>
-            <div class="add-task">
-                Create new task <span text="" class="icon" @onclick="OpenNewTaskDialog"><RadzenIcon Icon="add_circle_outline" /></span>
-            </div>
-        </div>
-        <div class="project-actions-section">
-            @if (project.IsPublic)
+            @if(project.IsOwner == true)
             {
-                <span class="icon" @onclick="CopyProjectLink"><RadzenIcon Icon="link" /></span>
+                <div class="header-icons">
+                    <span class="icon align-content-center" @onclick="OpenParticipantsDialog"> Members <RadzenIcon Icon="group" /></span>
+                    <span class="icon" @onclick="ToggleProjectPrivacy">
+                        @if (lockStatus)
+                        {
+                            <RadzenIcon Icon="lock_open" />
+                        }
+                        else
+                        {
+                            <RadzenIcon Icon="lock" />
+                        }
+                    </span>
+                </div>
             }
-            <span class="icon" @onclick="OpenAddParticipantDialog"><RadzenIcon Icon="person_add" /></span>
+
+            <div class="add-task">
+                Create new task <span text="" class="create-icon" @onclick="OpenNewTaskDialog"><RadzenIcon Icon="add_circle_outline" /></span>
+            </div>
         </div>
+        @if (project.IsOwner == true)
+        {
+            <div class="project-actions-section">
+                @if (!project.IsPublic)
+                {
+                    <span class="icon" @onclick="CopyProjectLink"><RadzenIcon Icon="link" /></span>
+                }
+                <span class="icon" @onclick="OpenAddParticipantDialog"><RadzenIcon Icon="person_add" /></span>
+                <span class="delete-icon" @onclick="() => ShowConfirmDeleteAssignment(ProjectId)"><RadzenIcon Icon="delete" /></span>
+            </div>
+        }
+
     </div>
     <div class="task-board">
         @foreach (var status in Enum.GetValues(typeof(WorkItemStatus)).Cast<WorkItemStatus>())
@@ -77,7 +86,8 @@
 </RadzenContent>
 @if (IsConfirmDeleteProjectOpen)
 {
-    <ConfirmDelete IsOpenDelete="true" OnDeleteConfirmed="OnDeleteProjectConfirmed" />
+    <ConfirmDelete IsOpenDelete="true" 
+        OnDeleteConfirmed="OnDeleteProjectConfirmed" />
 }
 
 @code {
@@ -89,11 +99,13 @@
     private string InviteLink { get; set; }
     private bool IsConfirmDeleteOpen { get; set; }
     private bool IsConfirmDeleteProjectOpen { get; set; }
+    private bool IsConfirmChangeUserOpen { get; set; }
     private int projectIdToAction;
     private bool newTaskDialogOpen = false;
     private bool chatDialogOpen = false;
     private bool addParticipantDialogOpen = false;
     private bool participantsDialogOpen = false;
+    private bool lockStatus = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -132,10 +144,14 @@
         NavigationManager.NavigateTo($"/task/{workItemId}");
     }
 
-    private void OpenNewTaskDialog()
+    private async void OpenNewTaskDialog()
     {
         newTaskDialogOpen = true;
-        DialogService.Open<WorkItemAdd>($"Add Task", new Dictionary<string, object> { { "ProjectId", ProjectId } });
+        DialogService.Open<WorkItemAdd>($"Add Task", new Dictionary<string, object> 
+        {
+            { "ProjectId", ProjectId },
+            { "OnInitialized", EventCallback.Factory.Create<bool>(this, OnInitializedAsync) }
+        });
     }
 
     private void OpenChatDialog()
@@ -162,10 +178,9 @@
 
     private async Task ToggleProjectPrivacy()
     {
-        project.IsPublic = !project.IsPublic;
+        lockStatus = !lockStatus;
         await HttpClient.PutAsJsonAsync($"api/project/{ProjectId}/toggle-privacy", project);
         await LoadProjectData();
-
     }
 
     private async Task SaveProjectName()
@@ -180,7 +195,10 @@
     {
         isEditingName = true;
     }
-
+    private void SetConfirmChangeUserOpen(bool isOpen)
+    {
+        IsConfirmChangeUserOpen = isOpen;
+    }
     private async Task CopyProjectLink()
     {
         try
@@ -193,9 +211,9 @@
                     InviteToken = inviteToken
                 };
 
-            var response = await HttpClient.PutAsJsonAsync($"api/project/editProject/{ProjectId}", projectInvite);
-            var link = await response.Content.ReadAsStringAsync();
-            InviteLink = link.ToString();
+            HttpResponseMessage response = await HttpClient.PutAsJsonAsync($"api/project/editProject/{ProjectId}", projectInvite);
+            string inviteLink = await response.Content.ReadAsStringAsync();
+            InviteLink = inviteLink; // Присвоюємо значення InviteLink
             await JSRuntime.InvokeVoidAsync("copyTextToClipboard", InviteLink);
         }
         catch (JSException jsEx)
@@ -243,7 +261,7 @@
     {
         await HttpClient.DeleteAsync($"api/workitem/{workItemId}");
         tasks.RemoveAll(t => t.WorkItemId == workItemId);
-        await LoadProjectData();
+        await OnInitializedAsync();
 
     }
 
@@ -261,9 +279,10 @@
     private async Task OpenEditTaskDialogPage(int workItemId)
     {
         newTaskDialogOpen = true;
-        DialogService.Open<WorkItemEdit>($"Edit Task", new Dictionary<string, object> { { "WorkItemId", workItemId } });
-        await LoadProjectData();
-
-        // NavigationManager.NavigateTo($"/editWorkItem/{workItemId}");
+        await DialogService.OpenAsync<WorkItemEdit>("Edit Task", new Dictionary<string, object>
+        {
+            { "WorkItemId", workItemId },
+            { "OnInitialized", EventCallback.Factory.Create<bool>(this, OnInitializedAsync) }
+        });
     }
 }

@@ -11,7 +11,9 @@
 <PageTitle>Add Work Item</PageTitle>
 
 <RadzenColumn SizeMD=12>
-    <RadzenAlert Shade="Shade.Lighter" Variant="Variant.Flat" Size="AlertSize.Small" AlertStyle="AlertStyle.Danger" Visible="@errorVisible">Cannot save Work Item</RadzenAlert>
+    <RadzenAlert Shade="Shade.Lighter" Variant="Variant.Flat" Size="AlertSize.Small" AlertStyle="AlertStyle.Danger" Visible="@errorVisible">
+        Cannot save Work Item
+    </RadzenAlert>
     <RadzenTemplateForm TItem="WorkItemCreateDTO" Data="@workItem" Visible="@(workItem != null)" Submit="@FormSubmit">
         <RadzenRow style="margin-bottom: 1rem">
             <RadzenColumn SizeMD="3">
@@ -29,6 +31,7 @@
             </RadzenColumn>
             <RadzenColumn SizeMD="9">
                 <RadzenTextBox style="display: block; width: 100%" @bind-Value="@workItem.Description" Name="Description" />
+                <RadzenRequiredValidator Component="Description" Text="Description is required" />
             </RadzenColumn>
         </RadzenRow>
 
@@ -41,7 +44,8 @@
                                 TextProperty="Name"
                                 ValueProperty="Value"
                                 Placeholder="Choose Status"
-                                @bind-Value="@workItem.Status" />
+                                @bind-Value="@workItem.Status"
+                                Name="Status" />
                 <RadzenRequiredValidator Component="Status" Text="Status is required" />
             </RadzenColumn>
         </RadzenRow>
@@ -55,7 +59,8 @@
                                 TextProperty="Name"
                                 ValueProperty="Value"
                                 Placeholder="Choose Priority"
-                                @bind-Value="@workItem.Priority" />
+                                @bind-Value="@workItem.Priority"
+                                Name="Priority" />
                 <RadzenRequiredValidator Component="Priority" Text="Priority is required" />
             </RadzenColumn>
         </RadzenRow>
@@ -70,7 +75,6 @@
             </RadzenColumn>
         </RadzenRow>
 
-
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.End" Gap="0.5rem">
             <RadzenButton ButtonStyle="ButtonStyle.Primary" ButtonType="ButtonType.Submit" Icon="save" Text="Save" Variant="Variant.Flat" />
             <RadzenButton ButtonStyle="ButtonStyle.Light" Text="Cancel" Variant="Variant.Flat" Click="@CancelButtonClick" />
@@ -81,7 +85,7 @@
 @code {
     [Parameter]
     public int ProjectId { get; set; }
-
+    [Parameter] public EventCallback<bool> OnInitialized { get; set; }
     protected bool errorVisible;
     protected WorkItemCreateDTO workItem;
     protected ProjectInfoDTO projects;
@@ -102,21 +106,23 @@
     {
         try
         {
-            // Console.WriteLine($"Status: {workItem.Status}, Priority: {workItem.Priority}");
-
-            var response = await HttpClient.PostAsJsonAsync("api/workitem/createWorkItem", workItem);
+            var response = await HttpClient.PostAsJsonAsync("api/workitem/create", workItem);
             if (response.IsSuccessStatusCode)
             {
+                await OnInitialized.InvokeAsync(true);
                 dialogService.Close(workItem);
             }
             else
             {
                 errorVisible = true;
+                var errorMessage = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Error: {errorMessage}");
             }
         }
         catch (Exception ex)
         {
             errorVisible = true;
+            Console.WriteLine($"Exception: {ex.Message}");
         }
     }
 

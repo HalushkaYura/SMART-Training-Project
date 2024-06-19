@@ -23,9 +23,17 @@ namespace Smart.ServerSide.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> CreateWorkItem([FromBody] WorkItemCreateDTO workItemDto)
         {
-            var workItemInfo = await _workItemService.CreateWorkItemAsync(workItemDto, UserId);
-            return Ok(workItemInfo);
+            try
+            {
+                var workItemInfo = await _workItemService.CreateWorkItemAsync(workItemDto, UserId);
+                return Ok(workItemInfo);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
+
 
         [Authorize]
         [HttpGet("{workItemId}")]

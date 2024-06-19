@@ -434,5 +434,22 @@
 }
 
     .edit-icon:hover {
-        color: yellow; 
+        color: darkorange; 
+    }
+
+.delete-icon {
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+    .delete-icon:hover {
+        color: red;
+    }
+.create-icon {
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+    .create-icon:hover {
+        color: green;
     }

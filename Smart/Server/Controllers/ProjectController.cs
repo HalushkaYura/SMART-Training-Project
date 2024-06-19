@@ -72,8 +72,8 @@ namespace Smart.ServerSide.Controllers
         [Route("editProject/{projectId}")]
         public async Task<IActionResult> EditProject([FromBody] ProjectEditDTO projectEditDTO, int projectId)
         {
-            var inviteLink = await _projectService.EditProjectDateAsync(projectEditDTO, projectId, UserId);
-            return Ok(new { InviteLink = inviteLink });
+            string inviteLink = await _projectService.EditProjectDateAsync(projectEditDTO, projectId, UserId);
+            return Ok(inviteLink);
         }
 
         [Authorize]
@@ -111,5 +111,7 @@ namespace Smart.ServerSide.Controllers
             await _projectService.DeleteUserWithProject(userId, projectId, UserId);
             return Ok();
         }
+
+
     }
 }
