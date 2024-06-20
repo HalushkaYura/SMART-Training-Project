@@ -7,5 +7,6 @@
         public string UserId { get; set; }
         public string Content { get; set; }
         public DateTime SentDate { get; set; }
+        public string UserFullName { get; set; }
     }
 }

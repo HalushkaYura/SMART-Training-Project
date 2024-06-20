@@ -1,147 +1,79 @@
-﻿using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Smart.Core.Entities;
+using Smart.Core.Helpers.Chats;
 using Smart.Core.Interfaces.Repository;
 using Smart.Core.Interfaces.Services;
+using Smart.Server.Hubs;
 using Smart.Shared.DTOs.ChatDTO;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Smart.Core.Services
+public class ChatService : IChatService
 {
-    public class ChatService : IChatService
+    private readonly IHubContext<ChatHub> _hubContext;
+    protected readonly UserManager<User> _userManager;
+    protected readonly IRepository<Chat> _chatRepository;
+    protected readonly IRepository<ChatMessage> _chatMessageRepository;
+
+    public ChatService(
+        IHubContext<ChatHub> hubContext,
+        UserManager<User> userManager,
+        IRepository<Chat> chatRepository,
+        IRepository<ChatMessage> chatMessageRepository)
     {
-        private readonly IRepository<Chat> _chatRepository;
-        private readonly IRepository<ChatMessage> _chatMessageRepository;
+        _hubContext = hubContext;
+        _userManager = userManager;
+        _chatRepository = chatRepository;
+        _chatMessageRepository = chatMessageRepository;
+    }
 
-        public ChatService(IRepository<Chat> chatRepository, IRepository<ChatMessage> chatMessageRepository)
+    public async Task<IEnumerable<ChatMessageDTO>> GetChatMessages(int projectId, string userId)
+    {
+        var projectChat = await GetProjectChat(projectId);
+        var user = await _userManager.FindByIdAsync(userId);
+
+        return projectChat?.ChatMessages.Select(cm => new ChatMessageDTO
         {
-            _chatRepository = chatRepository;
-            _chatMessageRepository = chatMessageRepository;
-        }
+            ChatMessageId = cm.ChatMessageId,
+            ChatId = cm.ChatId,
+            UserId = cm.UserId,
+            Content = cm.Content,
+            SentDate = cm.SentDate,
+            UserFullName = $"{cm.User.Firstname} {cm.User.Lastname}"
+        });
+    }
 
-        public async Task<ChatDTO> GetChatByProjectIdAsync(int projectId)
+    public async Task SendMessage(SendMessageDto messageDto)
+    {
+        var user = await _userManager.FindByIdAsync(messageDto.UserId);
+        var projectChat = await GetProjectChat(messageDto.ProjectId);
+
+        var chatMessage = new ChatMessage
         {
-            var chat = await _chatRepository.GetEntityAsync(c => c.ProjectId == projectId);
-            if (chat == null)
-                return null;
+            Content = messageDto.Message,
+            SentDate = DateTime.UtcNow,
+            UserId = messageDto.UserId,
+            ChatId = projectChat.ChatId
+        };
 
-            return new ChatDTO
-            {
-                ChatId = chat.ChatId,
-                ProjectId = chat.ProjectId,
-                CreatedDate = chat.CreatedDate,
-                ChatMessages = chat.ChatMessages.Select(m => new ChatMessageDTO
-                {
-                    ChatMessageId = m.ChatMessageId,
-                    ChatId = m.ChatId,
-                    UserId = m.UserId,
-                    Content = m.Content,
-                    SentDate = m.SentDate
-                }).ToList()
-            };
-        }
+        await _chatMessageRepository.AddAsync(chatMessage);
+        await _chatMessageRepository.SaveChangesAsync();
 
-        public async Task<ChatDTO> CreateChatAsync(int projectId)
+        var connections = projectChat.Project.UserProjects.Select(up => up.User.Id).ToList();
+        var chatMessageDTO = new ChatMessageDTO
         {
-            var chat = new Chat
-            {
-                ProjectId = projectId,
-                CreatedDate = DateTime.UtcNow
-            };
+            ChatMessageId = chatMessage.ChatMessageId,
+            ChatId = chatMessage.ChatId,
+            UserId = chatMessage.UserId,
+            Content = chatMessage.Content,
+            SentDate = chatMessage.SentDate,
+            UserFullName = $"{user.Firstname} {user.Lastname}"
+        };
 
-            await _chatRepository.AddAsync(chat);
-            await _chatMessageRepository.SaveChangesAsync();
-            return new ChatDTO
-            {
-                ChatId = chat.ChatId,
-                ProjectId = chat.ProjectId,
-                CreatedDate = chat.CreatedDate
-            };
-        }
+        await _hubContext.Clients.Users(connections).SendAsync("ReceiveMessage", chatMessageDTO);
+    }
 
-        public async Task<ChatMessageDTO> AddMessageAsync(ChatMessageCreateDTO messageDto)
-        {
-            //_logger.LogInformation("Adding new message to chat {ChatId}", messageDto.ChatId);
-            var message = new ChatMessage
-            {
-                ChatId = messageDto.ChatId,
-                UserId = messageDto.UserId,
-                Content = messageDto.Content,
-                SentDate = DateTime.UtcNow
-            };
-
-            await _chatMessageRepository.AddAsync(message);
-            await _chatMessageRepository.SaveChangesAsync();
-
-            //_logger.LogInformation("Message added with ID {MessageId}", message.ChatMessageId);
-
-            return new ChatMessageDTO
-            {
-                ChatMessageId = message.ChatMessageId,
-                ChatId = message.ChatId,
-                UserId = message.UserId,
-                Content = message.Content,
-                SentDate = message.SentDate
-            };
-        }
-
-
-        public async Task<IEnumerable<ChatMessageDTO>> GetMessagesByChatIdAsync(int chatId)
-        {
-            var messages = await _chatMessageRepository.GetListAsync(m => m.ChatId == chatId);
-            return messages.Select(m => new ChatMessageDTO
-            {
-                ChatMessageId = m.ChatMessageId,
-                ChatId = m.ChatId,
-                UserId = m.UserId,
-                Content = m.Content,
-                SentDate = m.SentDate
-            }).ToList();
-        }
-
-        public async Task<IEnumerable<ChatMessage>> GetChatMessages(int projectId)
-        {
-            //var projectChat = await _dbContext.ProjectChats
-            //    .Include(pc => pc.ChatMessages)
-            //    .ThenInclude(cm => cm.User)
-            //    .FirstOrDefaultAsync(pc => pc.ProjectId == projectId);
-
-            //return projectChat?.ChatMessages;
-            throw new NotImplementedException();
-
-        }
-
-        public async Task SendMessage(string userId, int projectId, string message)
-        {
-            //var user = await _dbContext.Users.FindAsync(userId);
-            //var projectChat = await _dbContext.ProjectChats
-            //    .Include(pc => pc.Project)
-            //    .ThenInclude(p => p.UserProjects)
-            //    .ThenInclude(up => up.User)
-            //    .FirstOrDefaultAsync(pc => pc.ProjectId == projectId);
-
-            //var chatMessage = new ChatMessage
-            //{
-            //    Message = message,
-            //    SentAt = DateTime.UtcNow,
-            //    UserId = userId,
-            //    ProjectChatId = projectChat.ProjectChatId
-            //};
-
-            //_dbContext.ChatMessages.Add(chatMessage);
-            //await _dbContext.SaveChangesAsync();
-
-            //var connections = projectChat.Project.UserProjects.Select(up => up.User.Id).ToList();
-            //await _hubContext.Clients.Users(connections).SendAsync("ReceiveMessage", new
-            //{
-            //    Message = message,
-            //    SentAt = chatMessage.SentAt,
-            //    UserName = $"{user.Firstname} {user.Lastname}"
-            //});
-        }
+    private async Task<Chat> GetProjectChat(int projectId)
+    {
+        return await _chatRepository.GetFirstBySpecAsync(new ChatWithProjectAndMessagesSpec(projectId));
     }
 }

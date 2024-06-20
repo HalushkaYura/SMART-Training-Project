@@ -38,7 +38,7 @@
         @if (project.IsOwner == true)
         {
             <div class="project-actions-section">
-                @if (!project.IsPublic)
+                @if (lockStatus)
                 {
                     <span class="icon" @onclick="CopyProjectLink"><RadzenIcon Icon="link" /></span>
                 }

@@ -26,6 +26,8 @@ namespace Smart.Core
             services.AddScoped<IAttachmentService, AttachmentService>();
             services.AddScoped<IChatService, ChatService>();
             services.AddScoped<ICommentService, CommentService>();
+            services.AddSignalR();
+
             //services.AddScoped<IFileService, FileService>();
             //services.AddScoped<ILocaleStorageService, LocaleStorageService>();
             //services.AddScoped<INotificationService, NotificationService>();

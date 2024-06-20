@@ -10,7 +10,7 @@ namespace Smart.Core.Interfaces.Services
 {
     public interface IChatService
     {
-        Task<IEnumerable<ChatMessage>> GetChatMessages(int projectId);
-        Task SendMessage(string userId, int projectId, string message);
+        Task<IEnumerable<ChatMessageDTO>> GetChatMessages(int projectId, string userId);
+        Task SendMessage(SendMessageDto messageDto);
     }
 }

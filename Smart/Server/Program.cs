@@ -33,7 +33,6 @@ namespace Smart
             services.AddHangfire(x => x.UseSqlServerStorage(configuration.GetConnectionString("DefaultConnection")));
             services.AddHangfireServer();
 
-            services.AddSignalR();
         }
         public static void Main(string[] args)
         {

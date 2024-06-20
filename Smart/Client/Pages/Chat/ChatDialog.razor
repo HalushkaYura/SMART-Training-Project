@@ -1,100 +1,107 @@
 ﻿@page "/chatdialog/{ProjectId:int}"
 @using Smart.Shared.DTOs.ChatDTO
-@inject HttpClient HttpClient
+@inject HttpClient Http
 @inject NavigationManager NavigationManager
-@inject DialogService DialogService
-@inject AuthenticationStateProvider AuthenticationStateProvider
 
-<PageTitle>Chat</PageTitle>
-
-<RadzenCard>
-    <RadzenHeading Size="H3">Chat</RadzenHeading>
-    <div class="chat-messages">
-        @if (messages != null && messages.Any())
+<div class="chat-container">
+    <div class="chat-header">
+        <h3>Project Chat</h3>
+    </div>
+    <div class="message-list">
+        @foreach (var message in Messages)
         {
-            @foreach (var message in messages)
-            {
-                <div class="message @(message.UserId == userId ? "my-message" : "their-message")">
-                    <strong>@message.UserId:</strong> @message.Content
+            <div class="message">
+                <div class="message-header">
+                    <span class="username">@message.UserFullName</span>
+                    <span class="message-date">@message.SentDate.ToString("g")</span>
                 </div>
-            }
-        }
-        else
-        {
-            <div>No messages available.</div>
+                <div class="message-content">
+                    <p>@message.Content</p>
+                </div>
+            </div>
         }
     </div>
-    <div class="chat-input">
-        <RadzenTextBox @bind-Value="chatMessageDTO.Content" Style="width: 100%;" Placeholder="Type a message..." />
-        <RadzenButton Click="@(async () => await SendMessage())" Icon="send" Style="margin-left: 10px;" />
+    <div class="input-container">
+        <input type="text" @bind-value="NewMessage" @onkeyup="HandleKeyUp" placeholder="Type your message..." />
+        <button class="send-button" @onclick="SendMessage">Send</button>
     </div>
-</RadzenCard>
+</div>
 
 @code {
-    [Parameter] public int ProjectId { get; set; }
+    [Parameter]
+    public int ProjectId { get; set; }
 
     private HubConnection hubConnection;
-    private List<ChatMessageDTO> messages = new List<ChatMessageDTO>();
-    private ChatMessageDTO chatMessageDTO = new ChatMessageDTO();
-    private string userId;
+    private List<ChatMessageDTO> Messages = new List<ChatMessageDTO>();
+    private string NewMessage = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-        userId = user.Identity.Name;
-
-        chatMessageDTO.UserId = userId;
-        chatMessageDTO.ChatId = ProjectId;
-
         hubConnection = new HubConnectionBuilder()
-            .WithUrl(NavigationManager.ToAbsoluteUri("/chathub"))
+            .WithUrl(NavigationManager.ToAbsoluteUri("/chatHub"))
+            .WithAutomaticReconnect() // Додає автоматичне перепідключення
             .Build();
 
-        hubConnection.On<ChatMessageDTO>("ReceiveMessage", (message) =>
+        hubConnection.On<ChatMessageDTO>("ReceiveMessage", (chatMessageDTO) =>
         {
-            messages.Add(message);
-            StateHasChanged();
+            Messages.Add(chatMessageDTO);
+            InvokeAsync(StateHasChanged);
         });
 
-        await LoadMessages();
-
         await hubConnection.StartAsync();
+
+        Messages = (await GetChatMessages()).ToList();
     }
 
-    private async Task LoadMessages()
+    private async Task<IEnumerable<ChatMessageDTO>> GetChatMessages()
     {
-        messages = await HttpClient.GetFromJsonAsync<List<ChatMessageDTO>>($"/api/chat/{ProjectId}/messages");
+        return await Http.GetFromJsonAsync<IEnumerable<ChatMessageDTO>>($"api/chat/{ProjectId}");
     }
-
-    public bool IsConnected => hubConnection.State == HubConnectionState.Connected;
 
     private async Task SendMessage()
     {
-        if (!string.IsNullOrEmpty(chatMessageDTO.Content))
+        if (!string.IsNullOrWhiteSpace(NewMessage))
         {
-            var response = await HttpClient.PostAsJsonAsync("/api/chat/message", new ChatMessageCreateDTO
+            var sendMessageDto = new SendMessageDto
                 {
-                    ChatId = chatMessageDTO.ChatId,
-                    UserId = chatMessageDTO.UserId,
-                    Content = chatMessageDTO.Content
-                });
+                    UserId = GetUserId(),
+                    ProjectId = ProjectId,
+                    Message = NewMessage
+                };
 
+            var response = await Http.PostAsJsonAsync("api/chat", sendMessageDto);
             if (response.IsSuccessStatusCode)
             {
-                var newMessage = await response.Content.ReadFromJsonAsync<ChatMessageDTO>();
-                await hubConnection.SendAsync("SendMessage", newMessage);
-                chatMessageDTO.Content = string.Empty;
+                await OnInitializedAsync();
+                NewMessage = string.Empty;
             }
             else
             {
-                Console.Error.WriteLine("Failed to send message: " + response.StatusCode);
+                // Handle error
+                Console.WriteLine("Error sending message");
             }
         }
     }
 
-    public void Dispose()
+    private void HandleKeyUp(KeyboardEventArgs e)
     {
-        _ = hubConnection.DisposeAsync();
+        if (e.Key == "Enter")
+        {
+            SendMessage().GetAwaiter().GetResult();
+        }
+    }
+
+    private string GetUserId()
+    {
+        // Отримати ідентифікатор поточного користувача
+        return "userId";
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection != null)
+        {
+            await hubConnection.DisposeAsync();
+        }
     }
 }
